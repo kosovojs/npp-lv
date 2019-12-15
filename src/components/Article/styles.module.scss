@@ -1,0 +1,37 @@
+.wrapper {
+	display: grid;
+	grid-template-columns: 20% 2fr;
+	grid-auto-rows: minmax(25px, auto);
+}
+
+.title {
+	grid-column: 2;
+	grid-row: 1;
+	padding-top: 15px;
+}
+
+.actions {
+	padding-top: 15px;
+	margin-left: 25px;
+}
+
+.articleName {
+	font-weight: bold;
+	font-size: 155%;
+}
+
+.info {
+	grid-column: 1;
+	grid-row: 2/3;
+}
+
+.navigActions {
+	padding: 15px 10px 10px 7px;
+	grid-column: 1;
+	grid-row: 1;
+}
+
+.text {
+	grid-column: 2/3;
+	grid-row: 2;
+}

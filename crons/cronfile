@@ -1,3 +1,0 @@
-#MAILTO=""
-0 0,12 * * *   jstart -N import -mem 500m sh $HOME/crons/import.sh
-0 3 * * 1    jstart -N db_dump -mem 500m sh $HOME/crons/dump.sh >/dev/null
