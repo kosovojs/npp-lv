@@ -1,0 +1,2 @@
+-quiet
+-v HOME=/data/project/npp-lv,PYTHONPATH=$PYTHONPATH:/shared/pywikibot/core:/shared/pywikibot/core/externals/httplib2:/shared/pywikibot/core/scripts:/data/project/npp-lv/helpers,LC_ALL=en_US.UTF-8,PYTHONIOENCODING=UTF-8
