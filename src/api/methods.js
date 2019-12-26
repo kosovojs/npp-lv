@@ -35,6 +35,15 @@ const mediawiki = {
 		limit: 10,
 		suggest: true
 	}),
+
+	deleteLog: (title) => get(`https://lv.wikipedia.org/w/api.php`,{
+		action: "query",
+		origin: '*',
+		format: "json",
+		list: 'logevents',
+		letype: 'delete',
+		letitle: title
+	}),
 }
 
 const tool = {

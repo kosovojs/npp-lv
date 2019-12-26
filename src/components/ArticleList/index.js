@@ -13,11 +13,11 @@ import FirstPageIcon from '@material-ui/icons/FirstPage';
 import KeyboardArrowLeft from '@material-ui/icons/KeyboardArrowLeft';
 import KeyboardArrowRight from '@material-ui/icons/KeyboardArrowRight';
 import LastPageIcon from '@material-ui/icons/LastPage';
+import NavigateNextIcon from '@material-ui/icons/NavigateNext';
 
 import fakeData from './data';
 import { connect } from 'react-redux';
-import {fetchNextArticle} from '../Article/articleSlice';
-
+import { fetchNextArticle, saveArticle } from '../Article/articleSlice';
 
 import { Redirect } from 'react-router-dom';
 
@@ -29,7 +29,7 @@ import Checkbox from '@material-ui/core/Checkbox';
 import Tooltip from '@material-ui/core/Tooltip';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Switch from '@material-ui/core/Switch';
-import DeleteIcon from '@material-ui/icons/Delete';
+import CheckCircleOutlineIcon from '@material-ui/icons/CheckCircleOutline';
 import FilterListIcon from '@material-ui/icons/FilterList';
 
 const useStyles1 = makeStyles(theme => ({
@@ -128,15 +128,11 @@ function EnhancedTableHead(props) {
 	};
 
 	const headCells = [
-		{ id: 'name', numeric: false, disablePadding: false, label: 'Raksta nosaukums' },
-		{ id: 'date', numeric: false, disablePadding: true, label: 'Raksts izveidots' },
-		{ id: 'user', numeric: false, disablePadding: true, label: 'Raksta izveidotājs' },
-		{ id: 'act', numeric: false, disablePadding: true, label: 'Darbības' }
+		{ id: 'name', numeric: false, disablePadding: false, label: 'Raksta nosaukums', classes: 'articleName', sorting: true },
+		{ id: 'date', numeric: false, disablePadding: true, label: 'Raksts izveidots', classes: 'articleDate', sorting: true },
+		{ id: 'user', numeric: false, disablePadding: true, label: 'Raksta izveidotājs', classes: 'articleAuthor', sorting: true },
+		{ id: 'act', numeric: false, disablePadding: true, label: 'Darbības', classes: 'articleActions', sorting: false }
 	];
-
-	{
-		/* {"id":"10071","title":"Aleksandrs P\u0113tersons (politi\u0137is)","date":"2019-01-26 23:54:42","user":"Pirags","comment":null} */
-	}
 
 	return (
 		<TableHead>
@@ -151,21 +147,33 @@ function EnhancedTableHead(props) {
 		  </TableCell> */}
 				{headCells.map(headCell => (
 					<TableCell
+						className={classes[headCell.classes]}
 						key={headCell.id}
 						align={headCell.numeric ? 'right' : 'left'}
 						padding={headCell.disablePadding ? 'none' : 'default'}
 						sortDirection={orderBy === headCell.id ? order : false}>
+							{headCell.sorting ?
 						<TableSortLabel
 							active={orderBy === headCell.id}
 							direction={order}
 							onClick={createSortHandler(headCell.id)}>
 							{headCell.label}
-						</TableSortLabel>
+						</TableSortLabel> : headCell.label}
 					</TableCell>
 				))}
 			</TableRow>
 		</TableHead>
 	);
+}
+
+EnhancedTableHead.propTypes = {
+  classes: PropTypes.object,
+  numSelected: PropTypes.number,
+  onRequestSort: PropTypes.func,
+  onSelectAllClick: PropTypes.func,
+  order: PropTypes.string,
+  orderBy: PropTypes.string,
+  rowCount: PropTypes.number
 }
 
 function stableSort(array, cmp) {
@@ -183,21 +191,24 @@ function getSorting(order, orderBy) {
 }
 
 const useStyles2 = makeStyles(theme => ({
-	root: {
-		width: '100%'
-	},
-	table: {
-		minWidth: 500
-	},
-	tableWrapper: {
-		overflowX: 'auto'
-	},
 	buttons: {
-		margin: theme.spacing(1),
+		margin: theme.spacing(1)
+	},
+	articleName: {
+		width: 600
+	},
+	articleDate: {
+		width: 150
+	},
+	articleAuthor: {
+		width: 150
+	},
+	articleActions: {
+		width: 150
 	}
 }));
 
-function CustomPaginationActionsTable({fetchNextArticle}) {
+function CustomPaginationActionsTable({ fetchNextArticle, saveArticle }) {
 	const classes = useStyles2();
 	const [order, setOrder] = React.useState('asc');
 	const [orderBy, setOrderBy] = React.useState('calories');
@@ -253,14 +264,18 @@ function CustomPaginationActionsTable({fetchNextArticle}) {
 		setSelected([]);
 	};
 
-	const goingToArticle = (articleID) => {
-		console.log(articleID)
-		fetchNextArticle('this',articleID);
+	const handleArticleSaving = (articleID, articleTitle) => {
+		saveArticle(articleID, articleTitle, false);
+	};
+
+	const goingToArticle = articleID => {
+		console.log(articleID);
+		fetchNextArticle('this', articleID);
 		setGoToArticle(true);
-	}
+	};
 
 	if (goToArticle) {
-		return <Redirect push to="/" />;
+		return <Redirect push to='/' />;
 	}
 
 	return (
@@ -287,7 +302,24 @@ function CustomPaginationActionsTable({fetchNextArticle}) {
 									</TableCell>
 									<TableCell align='right'>{row.date}</TableCell>
 									<TableCell>{row.user}</TableCell>
-									<TableCell className={classes.buttons}><IconButton aria-label="delete" onClick={() => goingToArticle(row.id)}><DeleteIcon /></IconButton></TableCell>
+									<TableCell className={classes.buttons}>
+										<Tooltip title='Pārbaudīt šo rakstu'>
+											<IconButton
+												aria-label='go-to-article'
+												onClick={() => goingToArticle(row.id)}>
+												<NavigateNextIcon />
+											</IconButton>
+										</Tooltip>
+										<Tooltip title='Atzīmēt kā pārbaudītu'>
+											<IconButton
+												aria-label='mark-as-resolved'
+												onClick={() =>
+													handleArticleSaving(row.id, row.title)
+												}>
+												<CheckCircleOutlineIcon />
+											</IconButton>
+										</Tooltip>
+									</TableCell>
 								</TableRow>
 							))}
 					</TableBody>
@@ -315,11 +347,13 @@ function CustomPaginationActionsTable({fetchNextArticle}) {
 	);
 }
 
+CustomPaginationActionsTable.propTypes = {
+  fetchNextArticle: PropTypes.func,
+  saveArticle: PropTypes.func
+}
+
 //
 
-const mapDispatchToProps = { fetchNextArticle }
+const mapDispatchToProps = { fetchNextArticle, saveArticle };
 
-export default connect(
-	null,
-	mapDispatchToProps
-)(CustomPaginationActionsTable)
+export default connect(null, mapDispatchToProps)(CustomPaginationActionsTable);

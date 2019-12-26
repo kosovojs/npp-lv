@@ -68,6 +68,7 @@ class Article extends React.Component {
 	componentDidMount() {
 		this.props.resetID();
 		this.props.fetchNextArticle('next');
+		//this.props.fetchNextArticle('this',2347);
 	}
 
 	render() {

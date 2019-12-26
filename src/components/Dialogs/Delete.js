@@ -52,18 +52,18 @@ TabPanel.propTypes = {
 	index: PropTypes.number
 };
 
-export default function FormDialog({ isOpen }) {
+export default function FormDialog({ isOpen, modalOpenHandle }) {
 	const classes = useStyles();
-	const [open, setOpen] = React.useState(false);
+	//const [open, setOpen] = React.useState(false);
 	const [pamatojums, setPamatojums] = React.useState('');
 	const [days, setDays] = React.useState(30);
 
-	React.useEffect(() => {
+	/* React.useEffect(() => {
 		setOpen(isOpen);
-	}, [isOpen]);
+	}, [isOpen]); */
 
 	const handleClose = () => {
-		setOpen(false);
+		modalOpenHandle('');
 	};
 
 	const handleSave = fdsfsd => {
@@ -83,7 +83,7 @@ export default function FormDialog({ isOpen }) {
 			<Dialog
 				fullWidth={true}
 				disableEnforceFocus={false}
-				open={open}
+				open={isOpen}
 				aria-labelledby='form-dialog-title'
 				maxWidth='md'>
 				<DialogTitle id='form-dialog-title'>Raksta izvirzīšana uz dzēšanu</DialogTitle>
@@ -126,5 +126,6 @@ export default function FormDialog({ isOpen }) {
 }
 
 FormDialog.propTypes = {
-	isOpen: PropTypes.bool
+	isOpen: PropTypes.bool,
+	modalOpenHandle: PropTypes.func
 };

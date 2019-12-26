@@ -65,8 +65,14 @@ const fetchNextArticle = (mode, optID = null) => (dispatch, getState) => {
 	})
 }
 
-const saveArticle = () => (dispatch, getState) => {
-	const {id, title} = getState().article;
+const saveArticle = (articleID = null, articleTitle = null, fetchNext = true) => (dispatch, getState) => {
+	//let id, title;
+
+	if (articleID === null) {
+		var {id, title} = getState().article;
+	} else {
+		var [id, title] = [articleID, articleTitle];
+	}
 
 	dispatch(setSaveProcess(true))
 	api.tool.saveArticle(id).then(res=> {
@@ -75,7 +81,9 @@ const saveArticle = () => (dispatch, getState) => {
 			toast.warn(`Neveiksmīga saglabāšana`, { autoClose: 7500 });
 		} else {
 			toast.success(`Darbība rakstam "${title}" saglabāta`, { autoClose: 3000 });
-			dispatch(fetchNextArticle('next'))
+			if (fetchNext) {//if called from article list, there is no need to fetch next article
+				dispatch(fetchNextArticle('next'))
+			}
 		}
 	})
 	.catch(err => {

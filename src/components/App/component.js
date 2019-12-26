@@ -3,6 +3,7 @@ import Header from '../Header';
 import Article from '../Article';
 import ArticleList from '../ArticleList';
 import Dashboard from '../Dashboard';
+import PropTypes from 'prop-types'
 import { HashRouter as Router, Route, Switch } from 'react-router-dom';
 
 import { ToastContainer } from 'react-toastify';
@@ -13,6 +14,10 @@ const NotFound = ({ location }) => (
 	  <h3>Did not found page <code>{location.pathname}</code></h3>
 	</div>
 );
+
+NotFound.propTypes = {
+  location: PropTypes.object
+}
 
 export default function() {
 	return (

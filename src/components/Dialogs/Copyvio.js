@@ -42,19 +42,21 @@ function copyvioFormat(data) {
 	);
 }
 
-export default function FormDialog({ isOpen }) {
-	const [open, setOpen] = React.useState(false);
+export default function FormDialog({ isOpen, modalOpenHandle }) {
+	//const [open, setOpen] = React.useState(false);
 	const [loading, setLoading] = React.useState(false);
 	const [loaded, setLoaded] = React.useState(false);
 
 	let copyvioData = exampleData.good;
 
-	React.useEffect(() => {
+	/* React.useEffect(() => {
 		setOpen(isOpen);
-	}, [isOpen]);
+		//return setOpen(false);
+	}, [isOpen]); */
 
 	const handleClose = () => {
-		setOpen(false);
+		//setOpen(false);
+		modalOpenHandle('');
 	};
 
 	const handleCheck = () => {
@@ -72,7 +74,7 @@ export default function FormDialog({ isOpen }) {
 
 	return (
 		<div>
-			<Dialog disableEnforceFocus={false} open={open} aria-labelledby='form-dialog-title'>
+			<Dialog disableEnforceFocus={false} open={isOpen} aria-labelledby='form-dialog-title'>
 				<DialogTitle id='form-dialog-title'>
 					Pārbaudīt, vai šis raksts nav autortiesību pārkāpums
 				</DialogTitle>
@@ -93,5 +95,6 @@ export default function FormDialog({ isOpen }) {
 }
 
 FormDialog.propTypes = {
-  isOpen: PropTypes.bool
+  isOpen: PropTypes.bool,
+  modalOpenHandle: PropTypes.func
 }
