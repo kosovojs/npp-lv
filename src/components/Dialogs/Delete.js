@@ -7,6 +7,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import FormControl from '@material-ui/core/FormControl';
+import { toast } from 'react-toastify';
 
 import PropTypes from 'prop-types';
 
@@ -16,6 +17,8 @@ import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import Typography from '@material-ui/core/Typography';
 import Box from '@material-ui/core/Box';
+
+import api from '../../api/methods';
 
 const useStyles = makeStyles(theme => ({
 	root: {
@@ -52,10 +55,10 @@ TabPanel.propTypes = {
 	index: PropTypes.number
 };
 
-export default function FormDialog({ isOpen, modalOpenHandle }) {
+export default function FormDialog({ isOpen, modalOpenHandle, title }) {
 	const classes = useStyles();
 	//const [open, setOpen] = React.useState(false);
-	const [pamatojums, setPamatojums] = React.useState('');
+	const [reason, setReason] = React.useState('');
 	const [days, setDays] = React.useState(30);
 
 	/* React.useEffect(() => {
@@ -66,12 +69,20 @@ export default function FormDialog({ isOpen, modalOpenHandle }) {
 		modalOpenHandle('');
 	};
 
-	const handleSave = fdsfsd => {
-		console.log(fdsfsd);
+	const handleSave = () => {
+		api.tool.setForDeletion({ days, reason, title }).then(res => {
+			if (res.status === 'error') {
+				toast.warn(`Neveiksmīga saglabāšana`, { autoClose: 7500 });
+			} else {
+				toast.success(`Raksts izvirzīts uz dzēšanu`, { autoClose: 3000 });
+				modalOpenHandle('');
+			}
+
+		});
 	};
 
 	const handlePamatojumsChange = event => {
-		setPamatojums(event.target.value);
+		setReason(event.target.value);
 	};
 
 	const handleDaysChange = event => {
@@ -107,13 +118,13 @@ export default function FormDialog({ isOpen, modalOpenHandle }) {
 							label='Pamatojums'
 							type='text'
 							onChange={handlePamatojumsChange}
-							value={pamatojums}
+							value={reason}
 							fullWidth
 						/>
 					</div>
 				</DialogContent>
 				<DialogActions>
-					<Button onClick={() => handleSave('discuss')} color='secondary'>
+					<Button onClick={() => handleSave()} color='secondary'>
 						Saglabāt
 					</Button>
 					<Button onClick={handleClose} color='primary'>
@@ -127,5 +138,6 @@ export default function FormDialog({ isOpen, modalOpenHandle }) {
 
 FormDialog.propTypes = {
 	isOpen: PropTypes.bool,
-	modalOpenHandle: PropTypes.func
+	modalOpenHandle: PropTypes.func,
+	title: PropTypes.string.isRequired
 };

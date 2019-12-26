@@ -7,14 +7,13 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 
-import PropTypes from 'prop-types'
+import PropTypes from 'prop-types';
 
 import api from '../../api/methods';
 import clsx from 'clsx';
 import './Copyvio.css';
 
 import exampleData from './copyvio_resp.js';
-
 
 function copyvioFormat(data) {
 	const { status, best, error } = data;
@@ -42,12 +41,11 @@ function copyvioFormat(data) {
 	);
 }
 
-export default function FormDialog({ isOpen, modalOpenHandle }) {
+export default function FormDialog({ isOpen, modalOpenHandle, title }) {
 	//const [open, setOpen] = React.useState(false);
 	const [loading, setLoading] = React.useState(false);
 	const [loaded, setLoaded] = React.useState(false);
-
-	let copyvioData = exampleData.good;
+	const [copyvioData, setCopyvioData] = React.useState({});
 
 	/* React.useEffect(() => {
 		setOpen(isOpen);
@@ -62,14 +60,13 @@ export default function FormDialog({ isOpen, modalOpenHandle }) {
 	const handleCheck = () => {
 		setLoading(true);
 
-		setTimeout(() => {
+		/* setTimeout(() => {
+		}, 2000); */
+		api.tool.checkCopyvio(title).then(res => {
 			setLoading(false);
 			setLoaded(true);
-		}, 2000);
-		/* api.tool.checkCopyvio('Braiens Epšteins').then(res => {
-		console.log(res)
-
-	}) */
+			setCopyvioData(res);
+		});
 	};
 
 	return (
@@ -95,6 +92,7 @@ export default function FormDialog({ isOpen, modalOpenHandle }) {
 }
 
 FormDialog.propTypes = {
-  isOpen: PropTypes.bool,
-  modalOpenHandle: PropTypes.func
-}
+	isOpen: PropTypes.bool,
+	modalOpenHandle: PropTypes.func,
+	title: PropTypes.string
+};

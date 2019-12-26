@@ -51,6 +51,10 @@ if (!empty($action)) {
 			echo $npp->saveArticle($npp->getRequest("id"));
 			break;
         
+		case "set_for_deletion":
+			echo $npp->setArticleToDeletion($npp->getRequest("title"),$npp->getRequest("days"),$npp->getRequest("reason"));
+			break;
+        
 		case "npp_comment":
 			echo $npp->putForLater($npp->getRequest("id"), $npp->getRequest("comment"));
 			break;

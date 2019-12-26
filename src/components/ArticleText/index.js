@@ -33,6 +33,7 @@ const ArticleText = ({title, updateArticleTitle}) => {
 	useEffect(() => {
 		//'Aleksandrs Pētersons (politiķis)'
 		setLoading(true);
+		setError(false);
 		api.mediawiki.getArticleText(title).then(res => {
 			if ('error' in res) {
 				setError(true);

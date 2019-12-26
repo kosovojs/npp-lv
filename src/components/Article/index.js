@@ -6,54 +6,8 @@ import ArticleNavigationActions from '../ArticleActions/navigation';
 import ArticleActions from '../ArticleActions';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { fetchNextArticle, resetID } from './articleSlice';
-
-const title = name => {
-	const urlSafeTitle = encodeURI(name);
-	return (
-		<>
-			<span className={styles.articleName}>
-				<a
-					href={`https://lv.wikipedia.org/w/index.php?title=${urlSafeTitle}`}
-					target='_blank'
-					rel='noopener noreferrer'>
-					{name}
-				</a>
-			</span>{' '}
-			<small>
-				(
-				<a
-					href={`https://lv.wikipedia.org/w/index.php?title=${urlSafeTitle}&action=edit&section=0`}
-					target='_blank'
-					rel='noopener noreferrer'>
-					labot sākumu
-				</a>
-				{' | '}
-				<a
-					href={`https://lv.wikipedia.org/w/index.php?title=${urlSafeTitle}&action=edit`}
-					target='_blank'
-					rel='noopener noreferrer'>
-					labot rakstu
-				</a>
-				{' | '}
-				<a
-					href={`https://lv.wikipedia.org/w/index.php?title=Diskusija:${urlSafeTitle}`}
-					target='_blank'
-					rel='noopener noreferrer'>
-					diskusija
-				</a>
-				{' | '}
-				<a
-					href={`https://lv.wikipedia.org/w/index.php?title=${urlSafeTitle}&action=history`}
-					target='_blank'
-					rel='noopener noreferrer'>
-					vēsture
-				</a>
-				)
-			</small>
-		</>
-	);
-};
+import { fetchNextArticle, resetID, settingFromArticleList } from './articleSlice';
+import title from '../../helpers/articleTitle';
 
 class Article extends React.Component {
 	constructor(props) {
@@ -66,8 +20,12 @@ class Article extends React.Component {
 	}
 
 	componentDidMount() {
-		this.props.resetID();
-		this.props.fetchNextArticle('next');
+		if (this.props.fromList === false) {
+			this.props.resetID();
+			this.props.fetchNextArticle('next');
+		} else {
+			this.props.settingFromArticleList(false);
+		}
 		//this.props.fetchNextArticle('this',2347);
 	}
 
@@ -79,7 +37,7 @@ class Article extends React.Component {
 				{currTitle && (
 					<div className={styles.wrapper}>
 						<div className={styles.title}>
-							{title(currTitle)}
+							{title(currTitle,'all', styles)}
 							<span className={styles.actions}>
 								<ArticleActions />
 							</span>
@@ -104,14 +62,17 @@ Article.propTypes = {
 	isFetching: PropTypes.bool,
 	title: PropTypes.string,
 	fetchNextArticle: PropTypes.func,
-	resetID: PropTypes.func
+	resetID: PropTypes.func,
+	fromList: PropTypes.bool,
+	settingFromArticleList: PropTypes.func
 };
 
 const mapStateToProps = state => ({
 	isFetching: state.article.fetching,
-	title: state.article.title
+	title: state.article.title,
+	fromList: state.article.fromList
 });
 
-const mapDispatchToProps = { fetchNextArticle, resetID };
+const mapDispatchToProps = { fetchNextArticle, resetID, settingFromArticleList };
 
 export default connect(mapStateToProps, mapDispatchToProps)(Article);

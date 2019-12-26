@@ -9,28 +9,38 @@ class NPP
 {
     private $oauth = null;
     private $tfc = null;
-	private $conn = null;
-	
-	private $requestParams = [];
-	
+    private $conn = null;
+    
+    private $requestParams = [];
+    
     private $allowedUsers = ['Biafra','Edgars2007'];
 
     public function __construct()
     {
         $this->tfc = new ToolforgeCommon('npp-lv');
         $this->oauth = new MW_OAuth('npp-lv', 'lv', 'wikipedia');
-		$this->conn = $this->tfc->openDBtool('npp_p');
-		
-		$this->requestParams = json_decode(file_get_contents('php://input'),true);
-
         $this->tfc->tool_user_name = 'npp-lv';
+        $this->conn = $this->tfc->openDBtool('npp_p');
+        
+        $this->getAllRequestParameters();
+    }
+    
+    private function getAllRequestParameters()
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            $this->requestParams = $_GET;
+        } else {
+            $this->requestParams = json_decode(file_get_contents('php://input'), true);
+        }
     }
 
     public function getRequest($key, $default = "")
     {
-		//if ( isset ( $this->prefilled_requests[$key] ) ) return $this->prefilled_requests[$key] ;
-		if ( isset ( $this->requestParams[$key] ) ) return str_replace ( "\'" , "'" , $this->requestParams[$key] ) ;
-		return $default ;
+        //if ( isset ( $this->prefilled_requests[$key] ) ) return $this->prefilled_requests[$key] ;
+        if (isset($this->requestParams[$key])) {
+            return str_replace("\'", "'", $this->requestParams[$key]) ;
+        }
+        return $default ;
     }
 
     public function authorize()
@@ -68,19 +78,21 @@ class NPP
         $result = $this->conn->query("SELECT id,title FROM main WHERE (comment is NULL and reviewed is NULL) and title like '%$searchPhrase%' limit 15")->fetchAll('assoc');
         
         return json_encode($result);
-	}
-	
-	private function checkAuth() {
+    }
+    
+    private function checkAuth()
+    {
         if (!$this->oauth->isAuthOK()) {
             return false;
-		}
-		
-		return true;
-	}
-	
-	private function getUserName() {
+        }
+        
+        return true;
+    }
+    
+    private function getUserName()
+    {
         return $this->oauth->getConsumerRights()->query->userinfo->name;
-	}
+    }
     
     public function archive($articleID)
     {
@@ -113,18 +125,18 @@ class NPP
             return json_encode(array('status' => 'error','message'=> 'no data'));
         }
         
-		if ($mode == 'this') {
-			$comm = "SELECT id,title FROM main WHERE id=".$lastID." limit 1";
-		} else {
-			$comm = "SELECT id,title FROM main WHERE (comment is NULL and reviewed is NULL) and id>";
-			
-			if ($mode=="rnd") {
-				$comm .= "0 ORDER BY RAND() limit 1";
-			} else if ($mode=="next") {
-				$comm .= $lastID." limit 1";
-			}
-		}
-		
+        if ($mode == 'this') {
+            $comm = "SELECT id,title FROM main WHERE id=".$lastID." limit 1";
+        } else {
+            $comm = "SELECT id,title FROM main WHERE (comment is NULL and reviewed is NULL) and id>";
+            
+            if ($mode=="rnd") {
+                $comm .= "0 ORDER BY RAND() limit 1";
+            } elseif ($mode=="next") {
+                $comm .= $lastID." limit 1";
+            }
+        }
+        
         $row = $this->conn->query($comm)->fetch('assoc');
         
         $numofres = $this->conn->query("SELECT count(*) as cnt FROM main WHERE (comment is NULL and reviewed is NULL)")->fetch('assoc')['cnt'];
@@ -163,6 +175,36 @@ class NPP
         }
     }
     
+    public function setArticleToDeletion($articleName, $days, $reason)
+    {
+        if ($articleName == '' || $articleName == null) {
+            return json_encode(array('status' => 'error','message'=> 'no data'));
+        }
+        /* if (!$this->checkAuth()) {
+            return json_encode(array('status' => 'error','message'=> 'not logged in'));
+        } */
+        
+        
+        $ch = null;
+        $articleContent = $this->oauth->doApiQuery([
+            'format' => 'json',
+            'action' => 'query',
+            'prop' => 'revisions',
+            'titles' => $articleName,
+            'rvprop' => 'content',
+            'rvslots' => 'main',
+            'rvlimit' => '1',
+            'redirects' => '1',
+            'rvdir' => 'older'
+        ], $ch);
+        
+        $articleContent= json_decode(json_encode($articleContent), true);
+        $articleID = array_keys($articleContent['query']['pages'])[0];
+        $articleData = $articleContent['query']['pages'][$articleID];
+        $resolvedArticleName = $articleData['title'];
+        $articleText = $articleData['revisions'][0]['slots']['main']['*'];
+    }
+    
     public function putForLater($articleID, $comment = null)
     {
         if ($articleID == '' || $articleID == null) {
@@ -191,16 +233,13 @@ class NPP
 
     private function timecard()
     {
-        $theQuery = "SELECT 
-		DAYOFWEEK(m.reviewed_time) AS `y`,
-		(ROUND(HOUR(m.reviewed_time)/2) * 2) AS `x`,
-		COUNT(id) AS `value`
+        $theQuery = "SELECT DAYOFWEEK(m.reviewed_time) AS `y`, (ROUND(HOUR(m.reviewed_time)/2) * 2) AS `x`, COUNT(id) AS `value`
 		FROM main m
 		WHERE m.reviewed_time is not null
 		GROUP BY y, x";
 
-		$totals = $this->conn->query($theQuery)->fetchAll('assoc');
-		
+        $totals = $this->conn->query($theQuery)->fetchAll('assoc');
+        
         // Scale the radii: get the max, then scale each radius.
         // This looks inefficient, but there's a max of 72 elements in this array.
         $max = 0;
@@ -222,10 +261,10 @@ class NPP
                     $index++;
                 } else {
                     $sortedTotals[$sortedIndex] = [
-						'y' => $day,
-						'x' => $hour,
-						'value' => 0,
-        			];
+                        'y' => $day,
+                        'x' => $hour,
+                        'value' => 0,
+                    ];
                 }
                 $sortedIndex++;
             }

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import { makeStyles, useTheme } from '@material-ui/core/styles';
 import Table from '@material-ui/core/Table';
@@ -13,11 +13,12 @@ import FirstPageIcon from '@material-ui/icons/FirstPage';
 import KeyboardArrowLeft from '@material-ui/icons/KeyboardArrowLeft';
 import KeyboardArrowRight from '@material-ui/icons/KeyboardArrowRight';
 import LastPageIcon from '@material-ui/icons/LastPage';
+import api from '../../api/methods';
 import NavigateNextIcon from '@material-ui/icons/NavigateNext';
 
 import fakeData from './data';
 import { connect } from 'react-redux';
-import { fetchNextArticle, saveArticle } from '../Article/articleSlice';
+import { fetchNextArticle, saveArticle, settingFromArticleList, resetID } from '../Article/articleSlice';
 
 import { Redirect } from 'react-router-dom';
 
@@ -31,6 +32,9 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Switch from '@material-ui/core/Switch';
 import CheckCircleOutlineIcon from '@material-ui/icons/CheckCircleOutline';
 import FilterListIcon from '@material-ui/icons/FilterList';
+
+import articleTitle from '../../helpers/articleTitle';
+import userLink from '../../helpers/userLink';
 
 const useStyles1 = makeStyles(theme => ({
 	root: {
@@ -111,7 +115,7 @@ function desc(a, b, orderBy) {
 	return 0;
 }
 
-const rows = fakeData.sort((a, b) => (a.id < b.id ? -1 : 1));
+//const rows = fakeData.sort((a, b) => (a.id < b.id ? -1 : 1));
 
 function EnhancedTableHead(props) {
 	const {
@@ -128,7 +132,7 @@ function EnhancedTableHead(props) {
 	};
 
 	const headCells = [
-		{ id: 'name', numeric: false, disablePadding: false, label: 'Raksta nosaukums', classes: 'articleName', sorting: true },
+		{ id: 'title', numeric: false, disablePadding: false, label: 'Raksta nosaukums', classes: 'articleName', sorting: true },
 		{ id: 'date', numeric: false, disablePadding: true, label: 'Raksts izveidots', classes: 'articleDate', sorting: true },
 		{ id: 'user', numeric: false, disablePadding: true, label: 'Raksta izveidotājs', classes: 'articleAuthor', sorting: true },
 		{ id: 'act', numeric: false, disablePadding: true, label: 'Darbības', classes: 'articleActions', sorting: false }
@@ -187,15 +191,19 @@ function stableSort(array, cmp) {
 }
 
 function getSorting(order, orderBy) {
+	//console.log(order, orderBy)
 	return order === 'desc' ? (a, b) => desc(a, b, orderBy) : (a, b) => -desc(a, b, orderBy);
 }
 
 const useStyles2 = makeStyles(theme => ({
+	root: {
+		margin: '1vw'
+	},
 	buttons: {
 		margin: theme.spacing(1)
 	},
 	articleName: {
-		width: 600
+		width: 300
 	},
 	articleDate: {
 		width: 150
@@ -208,41 +216,30 @@ const useStyles2 = makeStyles(theme => ({
 	}
 }));
 
-function CustomPaginationActionsTable({ fetchNextArticle, saveArticle }) {
+function CustomPaginationActionsTable({ fetchNextArticle, saveArticle, settingFromArticleList, resetID }) {
 	const classes = useStyles2();
-	const [order, setOrder] = React.useState('asc');
-	const [orderBy, setOrderBy] = React.useState('calories');
-	const [selected, setSelected] = React.useState([]);
-	const [page, setPage] = React.useState(0);
-	const [dense, setDense] = React.useState(false);
-	const [rowsPerPage, setRowsPerPage] = React.useState(5);
-	const [goToArticle, setGoToArticle] = React.useState(null);
+	const [rows, setTableRows] = useState([]);
+	const [order, setOrder] = useState('asc');
+	const [orderBy, setOrderBy] = useState('id');
+	const [selected, setSelected] = useState([]);
+	const [page, setPage] = useState(0);
+	const [dense, setDense] = useState(false);
+	const [rowsPerPage, setRowsPerPage] = useState(50);
+	const [goToArticle, setGoToArticle] = useState(null);
+
+	useEffect(() => {
+		resetID();
+		api.tool.articleList().then(res=> {
+			setTableRows(res.sort((a, b) => (a.id < b.id ? -1 : 1)));
+		})
+	}, []);
 
 	const emptyRows = rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
-
-	/* const handleClick = (event, name) => {
-		const selectedIndex = selected.indexOf(name);
-		let newSelected = [];
-
-		if (selectedIndex === -1) {
-		  newSelected = newSelected.concat(selected, name);
-		} else if (selectedIndex === 0) {
-		  newSelected = newSelected.concat(selected.slice(1));
-		} else if (selectedIndex === selected.length - 1) {
-		  newSelected = newSelected.concat(selected.slice(0, -1));
-		} else if (selectedIndex > 0) {
-		  newSelected = newSelected.concat(
-			selected.slice(0, selectedIndex),
-			selected.slice(selectedIndex + 1),
-		  );
-		}
-
-		setSelected(newSelected);
-	  }; */
 
 	const handleChangePage = (event, newPage) => {
 		setPage(newPage);
 	};
+
 
 	const handleChangeRowsPerPage = event => {
 		setRowsPerPage(parseInt(event.target.value, 10));
@@ -270,6 +267,7 @@ function CustomPaginationActionsTable({ fetchNextArticle, saveArticle }) {
 
 	const goingToArticle = articleID => {
 		console.log(articleID);
+		settingFromArticleList(true);
 		fetchNextArticle('this', articleID);
 		setGoToArticle(true);
 	};
@@ -279,9 +277,10 @@ function CustomPaginationActionsTable({ fetchNextArticle, saveArticle }) {
 	}
 
 	return (
-		<Paper className={classes.root}>
-			<div className={classes.tableWrapper}>
-				<Table className={classes.table} aria-label='custom pagination table'>
+		<>
+			{rows.length> 0 ?
+				<Paper className={classes.root}><div className={classes.tableWrapper}>
+				<Table className={classes.table} size="small" aria-label='custom pagination table'>
 					<EnhancedTableHead
 						classes={classes}
 						numSelected={0}
@@ -298,10 +297,11 @@ function CustomPaginationActionsTable({ fetchNextArticle, saveArticle }) {
 							.map(row => (
 								<TableRow key={row.id}>
 									<TableCell component='th' scope='row'>
-										{row.title}
+										{articleTitle(row.title,'title')}
 									</TableCell>
-									<TableCell align='right'>{row.date}</TableCell>
-									<TableCell>{row.user}</TableCell>
+									<TableCell>{row.date}</TableCell>
+									<TableCell>
+										{userLink(row.user)}</TableCell>
 									<TableCell className={classes.buttons}>
 										<Tooltip title='Pārbaudīt šo rakstu'>
 											<IconButton
@@ -342,18 +342,17 @@ function CustomPaginationActionsTable({ fetchNextArticle, saveArticle }) {
 						</TableRow>
 					</TableFooter>
 				</Table>
-			</div>
-		</Paper>
+			</div></Paper> : "Nav datu"}</>
 	);
 }
 
 CustomPaginationActionsTable.propTypes = {
   fetchNextArticle: PropTypes.func,
-  saveArticle: PropTypes.func
+  saveArticle: PropTypes.func,
+  settingFromArticleList: PropTypes.func,
+  resetID: PropTypes.func
 }
 
-//
-
-const mapDispatchToProps = { fetchNextArticle, saveArticle };
+const mapDispatchToProps = { fetchNextArticle, saveArticle, settingFromArticleList, resetID };
 
 export default connect(null, mapDispatchToProps)(CustomPaginationActionsTable);

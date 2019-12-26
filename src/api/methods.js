@@ -53,6 +53,17 @@ const tool = {
 		type1: type
 	}),
 
+	articleList: () => get('',{
+		action: 'main_list_npp'
+	}),
+
+	setForDeletion: ({title, reason, days}) => post('',{
+		action: 'set_for_deletion',
+		title,
+		reason,
+		days
+	}),
+
 	search: (text) => get('',{
 		action: 'npp_search',
 		text
