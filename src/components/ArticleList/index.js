@@ -16,22 +16,15 @@ import LastPageIcon from '@material-ui/icons/LastPage';
 import api from '../../api/methods';
 import NavigateNextIcon from '@material-ui/icons/NavigateNext';
 
-import fakeData from './data';
 import { connect } from 'react-redux';
 import { fetchNextArticle, saveArticle, settingFromArticleList, resetID } from '../Article/articleSlice';
 
-import { Redirect } from 'react-router-dom';
+import { Redirect, withRouter } from 'react-router-dom';
 
 import TableHead from '@material-ui/core/TableHead';
 import TableSortLabel from '@material-ui/core/TableSortLabel';
-import Toolbar from '@material-ui/core/Toolbar';
-import Typography from '@material-ui/core/Typography';
-import Checkbox from '@material-ui/core/Checkbox';
 import Tooltip from '@material-ui/core/Tooltip';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Switch from '@material-ui/core/Switch';
 import CheckCircleOutlineIcon from '@material-ui/icons/CheckCircleOutline';
-import FilterListIcon from '@material-ui/icons/FilterList';
 
 import articleTitle from '../../helpers/articleTitle';
 import userLink from '../../helpers/userLink';
@@ -120,6 +113,7 @@ function desc(a, b, orderBy) {
 function EnhancedTableHead(props) {
 	const {
 		classes,
+		hasComments,
 		onSelectAllClick,
 		order,
 		orderBy,
@@ -135,8 +129,10 @@ function EnhancedTableHead(props) {
 		{ id: 'title', numeric: false, disablePadding: false, label: 'Raksta nosaukums', classes: 'articleName', sorting: true },
 		{ id: 'date', numeric: false, disablePadding: true, label: 'Raksts izveidots', classes: 'articleDate', sorting: true },
 		{ id: 'user', numeric: false, disablePadding: true, label: 'Raksta izveidotājs', classes: 'articleAuthor', sorting: true },
+		hasComments ? { id: 'comment', numeric: false, disablePadding: true, label: 'Komentārs', classes: 'articleActions', sorting: true } : null,
 		{ id: 'act', numeric: false, disablePadding: true, label: 'Darbības', classes: 'articleActions', sorting: false }
-	];
+	]
+	.filter(row => row !== null);
 
 	return (
 		<TableHead>
@@ -177,7 +173,8 @@ EnhancedTableHead.propTypes = {
   onSelectAllClick: PropTypes.func,
   order: PropTypes.string,
   orderBy: PropTypes.string,
-  rowCount: PropTypes.number
+  rowCount: PropTypes.number,
+  hasComments: PropTypes.bool.isRequired
 }
 
 function stableSort(array, cmp) {
@@ -216,7 +213,7 @@ const useStyles2 = makeStyles(theme => ({
 	}
 }));
 
-function CustomPaginationActionsTable({ fetchNextArticle, saveArticle, settingFromArticleList, resetID }) {
+function CustomPaginationActionsTable({ fetchNextArticle, saveArticle, settingFromArticleList, resetID, location }) {
 	const classes = useStyles2();
 	const [rows, setTableRows] = useState([]);
 	const [order, setOrder] = useState('asc');
@@ -226,13 +223,33 @@ function CustomPaginationActionsTable({ fetchNextArticle, saveArticle, settingFr
 	const [dense, setDense] = useState(false);
 	const [rowsPerPage, setRowsPerPage] = useState(50);
 	const [goToArticle, setGoToArticle] = useState(null);
+	const [hasComments, setComments] = useState(false);
+
+	/* useEffect(() => {
+		if (location.pathname === '/comments') {
+			setComments(true);
+		} else {
+			setComments(false);
+		}
+	}, [location.pathname]); */
 
 	useEffect(() => {
+		let localHasComments = false;
+		if (location.pathname === '/comments') {
+			setComments(true);
+			localHasComments = true;
+		} else {
+			setComments(false);
+		}
+		setTableRows([]);
 		resetID();
-		api.tool.articleList().then(res=> {
+
+		const apiEndp = localHasComments === true ? api.tool.articlesWithComments : api.tool.articleList;
+
+		apiEndp().then(res=> {
 			setTableRows(res.sort((a, b) => (a.id < b.id ? -1 : 1)));
 		})
-	}, []);
+	}, [location.pathname]);
 
 	const emptyRows = rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
 
@@ -263,10 +280,12 @@ function CustomPaginationActionsTable({ fetchNextArticle, saveArticle, settingFr
 
 	const handleArticleSaving = (articleID, articleTitle) => {
 		saveArticle(articleID, articleTitle, false);
+
+		const newRows = rows.filter(n => n.id !== articleID);
+		setTableRows(newRows);
 	};
 
 	const goingToArticle = articleID => {
-		console.log(articleID);
 		settingFromArticleList(true);
 		fetchNextArticle('this', articleID);
 		setGoToArticle(true);
@@ -282,6 +301,7 @@ function CustomPaginationActionsTable({ fetchNextArticle, saveArticle, settingFr
 				<Paper className={classes.root}><div className={classes.tableWrapper}>
 				<Table className={classes.table} size="small" aria-label='custom pagination table'>
 					<EnhancedTableHead
+						hasComments={hasComments}
 						classes={classes}
 						numSelected={0}
 						order={order}
@@ -290,7 +310,6 @@ function CustomPaginationActionsTable({ fetchNextArticle, saveArticle, settingFr
 						onRequestSort={handleRequestSort}
 						rowCount={rows.length}
 					/>
-					{/* {"id":"10071","title":"Aleksandrs P\u0113tersons (politi\u0137is)","date":"2019-01-26 23:54:42","user":"Pirags","comment":null} */}
 					<TableBody>
 						{stableSort(rows, getSorting(order, orderBy))
 							.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
@@ -302,6 +321,8 @@ function CustomPaginationActionsTable({ fetchNextArticle, saveArticle, settingFr
 									<TableCell>{row.date}</TableCell>
 									<TableCell>
 										{userLink(row.user)}</TableCell>
+									{hasComments && <TableCell>
+										{row.comment}</TableCell>}
 									<TableCell className={classes.buttons}>
 										<Tooltip title='Pārbaudīt šo rakstu'>
 											<IconButton
@@ -350,9 +371,10 @@ CustomPaginationActionsTable.propTypes = {
   fetchNextArticle: PropTypes.func,
   saveArticle: PropTypes.func,
   settingFromArticleList: PropTypes.func,
-  resetID: PropTypes.func
+  resetID: PropTypes.func,
+  location: PropTypes.object
 }
 
 const mapDispatchToProps = { fetchNextArticle, saveArticle, settingFromArticleList, resetID };
 
-export default connect(null, mapDispatchToProps)(CustomPaginationActionsTable);
+export default withRouter(connect(null, mapDispatchToProps)(CustomPaginationActionsTable));

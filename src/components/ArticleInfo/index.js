@@ -1,6 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import rawData from './data.js';
 import userInfoLink from '../../helpers/userLink';
+import { Line } from 'react-chartjs-2';
 
 import api from '../../api/methods';
 import PropTypes from 'prop-types'
@@ -11,6 +12,7 @@ import ReportProblemIcon from '@material-ui/icons/ReportProblem';
 import { makeStyles } from '@material-ui/core/styles';
 import stats from './format';
 import { connect } from 'react-redux';
+import { subDays, format } from 'date-fns';
 import human_readable_date from '../../helpers/humanReadableTime';
 
 const useStyles = makeStyles(theme => ({
@@ -51,12 +53,16 @@ const doesArticleExist = data => {
 	return true;
 }
 
+const yesterday = format(subDays(new Date(), 1), 'yyyyMMdd');
+const before90days = format(subDays(new Date(), 90), 'yyyyMMdd');
+
 const ArticleInfo = ({title}) => {
 	const classes = useStyles();
 
 	const [articleData, setArticleData] = useState({});//rawData
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState('');
+	const [pageViews, setPageviews] = useState({dates: [], values: []});
 
 	useEffect(() => {
 		setLoading(true);
@@ -73,6 +79,22 @@ const ArticleInfo = ({title}) => {
 		.catch(err => {
 			setLoading(false);
 			setError('Problēmas ar Vikipēdijas raksta izgūšanu');
+		})
+
+
+		api.mediawiki.pageviews(title,before90days,yesterday).then(res => {
+			const dates = [];
+			const values = [];
+
+			res.items.forEach(item => {
+				dates.push(item.timestamp.slice(0,-2));
+				values.push(item.views);
+			})
+
+			setPageviews({dates, values});
+		})
+		.catch(err => {
+			setError('Problēmas ar skatījumu datu izgūšanu');
 		})
 	}, [title]);
 
@@ -111,6 +133,25 @@ const ArticleInfo = ({title}) => {
 				<ul>
 					{reds.map(title => <li key={title}>{title}</li>)}
 				</ul>
+			</Typography>
+		</>}
+		{pageViews.values.length>0 && <>
+			<Divider className={classes.divider} />
+			<Typography component='div' gutterBottom>
+
+		<Line
+						data={{labels: pageViews.dates,
+							datasets: [
+								{
+									label: 'Skatījumi',
+									fill: false,
+									backgroundColor: 'rgb(75, 192, 192)',
+									borderColor: 'rgb(75, 192, 192)',
+									data: pageViews.values
+								}
+							]}
+						}
+					/>
 			</Typography>
 		</>}
 	</>

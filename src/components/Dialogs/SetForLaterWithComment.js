@@ -24,23 +24,18 @@ const useStyles = makeStyles(theme => ({
 
 const mapDispatch = { putArticleInQueqe };
 
-function SetForLaterWithComment({ isOpen, putArticleInQueqe }) {
+function SetForLaterWithComment({ isOpen, putArticleInQueqe, modalOpenHandle }) {
 	const classes = useStyles();
-	const [open, setOpen] = React.useState(false);
 	const [pamatojums, setPamatojums] = React.useState('');
 
-	React.useEffect(() => {
-		setOpen(isOpen);
-	}, [isOpen]);
-
 	const handleClose = () => {
-		setOpen(false);
+		modalOpenHandle(false);
 	};
 
 	const handleSave = () => {
 		putArticleInQueqe(pamatojums)
 		setPamatojums('');
-		setOpen(false);
+		modalOpenHandle(false);
 	};
 
 	const handlePamatojumsChange = event => {
@@ -52,7 +47,7 @@ function SetForLaterWithComment({ isOpen, putArticleInQueqe }) {
 			<Dialog
 				fullWidth={true}
 				disableEnforceFocus={false}
-				open={open}
+				open={isOpen}
 				aria-labelledby='form-dialog-title'
 				maxWidth='md'>
 				<DialogTitle id='form-dialog-title'>Pievienot komentāru</DialogTitle>
@@ -83,7 +78,8 @@ function SetForLaterWithComment({ isOpen, putArticleInQueqe }) {
 
 SetForLaterWithComment.propTypes = {
 	putArticleInQueqe: PropTypes.func.isRequired,
-	isOpen: PropTypes.bool
+	isOpen: PropTypes.bool,
+	modalOpenHandle: PropTypes.func
 };
 
 export default connect(

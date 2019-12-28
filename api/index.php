@@ -1,5 +1,12 @@
 <?php
 header('Content-Type: application/json');
+
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Headers: Content-Type");
+header("Access-Control-Allow-Methods: GET, POST, PUT, OPTIONS");
+
+
+
 /* 
 header("Access-Control-Allow-Headers: Content-Type");
 header("Access-Control-Allow-Origin: *");
@@ -32,7 +39,7 @@ if (!empty($action)) {
 			break;
 			
 		case "search":
-			echo $npp->search($npp->getRequest("q"));
+			echo $npp->search($npp->getRequest("text"));
 			break;
 			
 		case "archive_npp":
@@ -44,7 +51,7 @@ if (!empty($action)) {
 			break;
 			
 		case "graphdata":
-			echo $npp->graphdata();
+			echo $npp->graphdata($npp->getRequest("period"));
 			break;
         
 		case "npp_save":

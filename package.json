@@ -15,6 +15,7 @@
 		"@reduxjs/toolkit": "^1.1.0",
 		"chart.js": "^2.9.3",
 		"clsx": "^1.0.4",
+		"date-fns": "^2.8.1",
 		"highcharts": "^8.0.0",
 		"highcharts-react-official": "^2.2.2",
 		"lodash": "^4.17.15",

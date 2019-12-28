@@ -59,7 +59,7 @@ export default function FormDialog({ isOpen, modalOpenHandle, title }) {
 	const classes = useStyles();
 	//const [open, setOpen] = React.useState(false);
 	const [reason, setReason] = React.useState('');
-	const [days, setDays] = React.useState(30);
+	const [days, setDays] = React.useState(15);
 
 	/* React.useEffect(() => {
 		setOpen(isOpen);
@@ -77,7 +77,6 @@ export default function FormDialog({ isOpen, modalOpenHandle, title }) {
 				toast.success(`Raksts izvirzīts uz dzēšanu`, { autoClose: 3000 });
 				modalOpenHandle('');
 			}
-
 		});
 	};
 

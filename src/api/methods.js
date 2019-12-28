@@ -44,6 +44,8 @@ const mediawiki = {
 		letype: 'delete',
 		letitle: title
 	}),
+
+	pageviews: (article, from, to) => get(`https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/lv.wikipedia/all-access/user/${article.replace(/ /g,'_')}/daily/${from}00/${to}00`),
 }
 
 const tool = {
@@ -57,6 +59,15 @@ const tool = {
 		action: 'main_list_npp'
 	}),
 
+	articlesWithComments: () => get('',{
+		action: 'main_comments_npp'
+	}),
+
+	graphdata: (period) => get('',{
+		action: 'graphdata',
+		period
+	}),
+
 	setForDeletion: ({title, reason, days}) => post('',{
 		action: 'set_for_deletion',
 		title,
@@ -65,7 +76,7 @@ const tool = {
 	}),
 
 	search: (text) => get('',{
-		action: 'npp_search',
+		action: 'search',
 		text
 	}),
 
@@ -86,6 +97,10 @@ const tool = {
 		project: 'wikipedia',
 		lang: 'lv',
 		title: article
+	}),
+
+	check: () => get('',{
+		action: 'userinfo'
 	}),
 }
 

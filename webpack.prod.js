@@ -110,8 +110,8 @@ module.exports = merge(common, {
 			new OptimizeCssAssetsPlugin(),
 			new TerserPlugin(),
 			new HtmlWebpackPlugin({
-				filename: '../index.html',
-				template: "./template.html",
+				filename: '../index.php',
+				template: "./src/template.php",
 				minify: {
 					collapseWhitespace: true,
 					removeComments: true,

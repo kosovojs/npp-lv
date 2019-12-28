@@ -16,6 +16,9 @@ import './Copyvio.css';
 import exampleData from './copyvio_resp.js';
 
 function copyvioFormat(data) {
+	if (Object.keys(data).length == 0) {
+		return;
+	}
 	const { status, best, error } = data;
 	//meta: {cache_time, cached},
 
@@ -61,11 +64,15 @@ export default function FormDialog({ isOpen, modalOpenHandle, title }) {
 		setLoading(true);
 
 		/* setTimeout(() => {
-		}, 2000); */
-		api.tool.checkCopyvio(title).then(res => {
+			setCopyvioData({"status": "ok", "meta": {"time": 10.828045845031738, "queries": 8, "cached": false, "redirected": false}, "page": {"title": "Priekules rajons", "url": "https://lv.wikipedia.org/wiki/Priekules_rajons"}, "best": {"url": "https://lv.wikipedia.org/wiki/Priekules_rajons", "confidence": 0.0, "violation": "none"}, "sources": [{"url": "https://lv.wikipedia.org/wiki/Priekules_rajons", "confidence": 0.0, "violation": "none", "skipped": true, "excluded": true}, {"url": "https://www.wikiwand.com/lv/Liep%C4%81jas_apri%C5%86%C4%B7is", "confidence": 0.0, "violation": "none", "skipped": true, "excluded": true}]});
 			setLoading(false);
 			setLoaded(true);
+
+		}, 200); */
+		api.tool.checkCopyvio(title).then(res => {
 			setCopyvioData(res);
+			setLoading(false);
+			setLoaded(true);
 		});
 	};
 
@@ -76,7 +83,7 @@ export default function FormDialog({ isOpen, modalOpenHandle, title }) {
 					Pārbaudīt, vai šis raksts nav autortiesību pārkāpums
 				</DialogTitle>
 				<DialogContent>
-					{loading ? 'Pārbauda...' : loaded ? copyvioFormat(copyvioData) : null}
+					{loading ? 'Pārbauda...' : (loaded ? copyvioFormat(copyvioData) : null)}
 				</DialogContent>
 				<DialogActions>
 					<Button onClick={handleCheck} color='secondary'>

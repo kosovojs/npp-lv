@@ -68,7 +68,7 @@ module.exports = merge(common, {
 	},
 	plugins: [
 		new HtmlWebpackPlugin({
-			template: "./template.html"
+			template: "./src/template.php"
 		})
 	],
 	module: {

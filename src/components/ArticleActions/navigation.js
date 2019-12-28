@@ -31,15 +31,19 @@ const mapDispatch = { fetchNextArticle, saveArticle, putArticleInQueqe };
 const ArticleActions = ({fetchNextArticle, saveArticle, putArticleInQueqe}) => {
 	const [open, setOpen] = React.useState(false);
 
+	const handleOpening = val => {
+		setOpen(val);
+	};
+
 	return <>
 		<ButtonGroup fullWidth variant="contained">
 			<Tooltip title="Pārbaudīt nākamo rakstu"><Button className={styles.toNext} onClick={() => fetchNextArticle('next')}><NavigateNextIcon /></Button></Tooltip>
 			<Tooltip title="Pārbaudīt nejauši izvēlētu rakstu"><Button className={styles.toNext} onClick={() => fetchNextArticle('rnd')}><ShuffleIcon /></Button></Tooltip>
 			<Tooltip title="Atzīmēt kā pārbaudītu"><Button className={styles.markAsChecked} onClick={() => saveArticle()}><CheckCircleOutlineIcon /></Button></Tooltip>
 			<Tooltip title="Atstāt"><Button  className={styles.forLater} onClick={() => putArticleInQueqe()}><TimerIcon /></Button></Tooltip>
-			<Tooltip title="Atstāt ar komentāru"><Button  className={styles.forLater} onClick={() => setOpen(true)}><ChatBubbleOutlineIcon /></Button></Tooltip>
+			<Tooltip title="Atstāt ar komentāru"><Button  className={styles.forLater} onClick={() => handleOpening(true)}><ChatBubbleOutlineIcon /></Button></Tooltip>
 		</ButtonGroup>
-		<SetForLaterWithComment isOpen={open} />
+		<SetForLaterWithComment isOpen={open} modalOpenHandle={handleOpening} />
 	</>
 }
 

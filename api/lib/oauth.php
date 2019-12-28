@@ -528,7 +528,7 @@ class MW_OAuth {
 		return $res ;
 	}
 
-	function setPageText ( $page , $text ) {
+	function setPageText ( $page , $text, $summary ) {
 
 		// Fetch the edit token
 		$ch = null;

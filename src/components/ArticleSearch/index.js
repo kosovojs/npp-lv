@@ -67,7 +67,7 @@ function AppSearch({fetchNextArticle}) {
 		setAnchorEl(null);
 		setOptions([]);
 		setSearchValue('');
-		fetchNextArticle('this',options[0]);
+		fetchNextArticle('this',options.id);
 	};
 
 	const handleClose = () => {
@@ -89,7 +89,7 @@ function AppSearch({fetchNextArticle}) {
 		setLoading(true);
 		api.tool.search(debouncedSearchTerm).then(res => {
 			if (active) {
-				console.log(res)
+				//console.log(res)
 				setLoading(false);
 				setOptions(res);
 			}
@@ -154,8 +154,8 @@ function AppSearch({fetchNextArticle}) {
 				onClose={handleClose}>
 				{options.length > 0 &&
 					options.map(opt => (
-						<MenuItem key={opt[0]} onClick={() => closeMenu(opt)}>
-							{opt[1]}
+						<MenuItem key={opt.id} onClick={() => closeMenu(opt)}>
+							{opt.title}
 						</MenuItem>
 					))}
 			</Menu>

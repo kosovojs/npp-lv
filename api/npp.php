@@ -13,7 +13,7 @@ class NPP
     
     private $requestParams = [];
     
-    private $allowedUsers = ['Biafra','Edgars2007'];
+    private $allowedUsers = ['Biafra','Edgars2007','EDGARSTEST'];
 
     public function __construct()
     {
@@ -82,16 +82,16 @@ class NPP
     
     private function checkAuth()
     {
-        if (!$this->oauth->isAuthOK()) {
+        /* if (!$this->oauth->isAuthOK()) {
             return false;
-        }
+        } */
         
         return true;
     }
     
     private function getUserName()
     {
-        return $this->oauth->getConsumerRights()->query->userinfo->name;
+        return 'EDGARSTEST';//$this->oauth->getConsumerRights()->query->userinfo->name;
     }
     
     public function archive($articleID)
@@ -180,11 +180,12 @@ class NPP
         if ($articleName == '' || $articleName == null) {
             return json_encode(array('status' => 'error','message'=> 'no data'));
         }
-        /* if (!$this->checkAuth()) {
+        if (!$this->checkAuth()) {
             return json_encode(array('status' => 'error','message'=> 'not logged in'));
-        } */
-        
-        
+		}
+		
+		$username = $this->getUserName();
+		
         $ch = null;
         $articleContent = $this->oauth->doApiQuery([
             'format' => 'json',
@@ -202,7 +203,22 @@ class NPP
         $articleID = array_keys($articleContent['query']['pages'])[0];
         $articleData = $articleContent['query']['pages'][$articleID];
         $resolvedArticleName = $articleData['title'];
-        $articleText = $articleData['revisions'][0]['slots']['main']['*'];
+		$articleText = $articleData['revisions'][0]['slots']['main']['*'];
+
+		$term = date('d.m.Y', strtotime($days.' days'));
+		$timestamp = date('YmdHis');
+
+		$tpls = "{{Dzēst|".$reason."; termiņš: ".$term."|lietotājs=".$username."|laiks=".$timestamp."}}\n{{termiņš|".$days."|".$term."}}";
+
+		$newContent = $tpls."\n".$articleText;
+
+		$res = $this->oauth->setPageText($resolvedArticleName, $newContent, 'raksts izvirzīts uz dzēšanu');
+
+		if ($res) {
+			return json_encode(array('status' => 'success','message'=> 'Everything is ok'));
+		}
+
+		return json_encode(array('status' => 'error','message'=> 'failed'));
     }
     
     public function putForLater($articleID, $comment = null)
@@ -338,34 +354,67 @@ class NPP
 
 
         return $dataset;
-    }
+	}
+	
+	private function setPeriodDates($period) {
+		if ($period === '30d') {
+			return [
+				'start' => date('Ymd', strtotime('-30 days')),
+				'end' => date('Ymd')
+			];
+		}
+
+		if ($period === '7d') {
+			return [
+				'start' => date('Ymd', strtotime('-7 days')),
+				'end' => date('Ymd')
+			];
+		}
+
+		if ($period === 'currY') {
+			return [
+				'start' => date('Y')."0101",
+				'end' => date('Ymd')
+			];
+		}
+
+		//if ($period === 'all') {
+			return [
+				'start' => "20170101",
+				'end' => date('Ymd')
+			];
+		//}
+	}
     
-    public function graphdata()
+    public function graphdata($period)
     {
-        $row = $this->conn->query("select left(timest,10), articles from stats")->fetchAll('num');
-        $result = array();
+		$periodDates = $this->setPeriodDates($period);
+		$start = $periodDates['start'];
+		$end = $periodDates['end'];
+        $row = $this->conn->query("select left(timest,10), articles from stats where timest between ? and ?", [$start, $end])->fetchAll('num');
+        $result = array('dates'=>[],'values'=>[]);
         
         foreach ($row as $indrow) {
-            $result[0][] = $indrow[0];
-            $result[1][] = $indrow[1];
+            $result['dates'][] = $indrow[0];
+            $result['values'][] = $indrow[1];
         }
         
-        $row2 = $this->conn->query("select left(reviewed_time,10) as newtime, count(*) from main where reviewed_time is not NULL group by newtime")->fetchAll('num');
-        $result2 = array();
+        $row2 = $this->conn->query("select left(reviewed_time,10) as newtime, count(*) from main where reviewed_time between ? and ? and reviewed_time is not NULL group by newtime", [$start, $end])->fetchAll('num');
+        $result2 = array('dates'=>[],'values'=>[]);
         
         foreach ($row2 as $indrow2) {
-            $result2[0][] = $indrow2[0];
-            $result2[1][] = $indrow2[1];
+            $result2['dates'][] = $indrow2[0];
+            $result2['values'][] = $indrow2[1];
         }
         
         $row3 = $this->conn->query("select left(date,10) as newtime, count(*) from main where reviewed_time is NULL and comment is NULL group by newtime")->fetchAll('num');
-        $result3 = array();
+        $result3 = array('dates'=>[],'values'=>[]);
         
         foreach ($row3 as $indrow3) {
-            $result3[0][] = $indrow3[0];
-            $result3[1][] = $indrow3[1];
+            $result3['dates'][] = $indrow3[0];
+            $result3['values'][] = $indrow3[1];
         }
         
-        echo json_encode(array($result,$result2,$result3,$this->timecard()));
+        echo json_encode(array($result,$result2,$result3));//,$this->timecard()
     }
 }

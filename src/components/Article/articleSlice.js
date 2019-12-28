@@ -1,5 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 import api from '../../api/methods';
+import {setArticleCount } from '../App/appSlice';
 import { toast } from 'react-toastify';
 
 //https://github.com/iamhosseindhv/notistack
@@ -74,10 +75,12 @@ const fetchNextArticle = (mode, optID = null) => (dispatch, getState) => {
 
 	dispatch(setFetchStart(true));
 	api.tool.nextArticle(optID || id, mode).then(res => {
-		const [data, _, __] = res;
-		const [id, title] = data[0];
+		//{"article":{"id":"1947","title":"Simona Krupeckaite"},"results":"5433","last_article":"2019-04-02 20:44:00"}
+
+		const {article: {id, title}, results} = res;
 
 		dispatch(getNextArticle(id, title));
+		dispatch(setArticleCount(parseInt(results)));
 	});
 };
 
@@ -99,12 +102,15 @@ const saveArticle = (articleID = null, articleTitle = null, fetchNext = true) =>
 		.then(res => {
 			dispatch(setSaveProcess(false));
 			if (res.status === 'error') {
-				toast.warn(`Neveiksmīga saglabāšana`, { autoClose: 7500 });
+				toast.warn(`Neveiksmīga saglabāšana: ${res.message}`, { autoClose: 7500 });
 			} else {
 				toast.success(`Darbība rakstam "${title}" saglabāta`, { autoClose: 3000 });
 				if (fetchNext) {
 					//if called from article list, there is no need to fetch next article
 					dispatch(fetchNextArticle('next'));
+				} else {
+					var {articles } = getState().app;
+					dispatch(setArticleCount(articles-1));
 				}
 			}
 		})
@@ -123,7 +129,7 @@ const putArticleInQueqe = (comment = null) => (dispatch, getState) => {
 		.then(res => {
 			dispatch(setSaveProcess(false));
 			if (res.status === 'error') {
-				toast.warn(`Neveiksmīga saglabāšana`, { autoClose: 7500 });
+				toast.warn(`Neveiksmīga saglabāšana: ${res.message}`, { autoClose: 7500 });
 			} else {
 				toast.success(`Darbība rakstam "${title}" saglabāta`, { autoClose: 3000 });
 				dispatch(fetchNextArticle('next'));
