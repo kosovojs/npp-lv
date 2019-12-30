@@ -46,6 +46,8 @@ const mediawiki = {
 	}),
 
 	pageviews: (article, from, to) => get(`https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/lv.wikipedia/all-access/user/${article.replace(/ /g,'_')}/daily/${from}00/${to}00`),
+
+	summary: (lang, article) => get(`https://${lang}.wikipedia.org/api/rest_v1/page/summary/${article.replace(/ /g,'_')}`),
 }
 
 const tool = {
@@ -89,6 +91,11 @@ const tool = {
 		action: 'npp_comment',
 		id,
 		comment
+	}),
+
+	setIWwb: (wikibaseItem, articleTitle) => post('',{
+		action: 'add_iw_wb',
+		wikibaseItem, articleTitle
 	}),
 
 	checkCopyvio: (article) => get('https://tools.wmflabs.org/copyvios/api.json',{

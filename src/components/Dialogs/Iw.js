@@ -31,8 +31,8 @@ const parseSearchResults = apiResp => {
 
 	const [__, articleTitles, introText, _] = apiResp;
 
-	for (let i = 0; i < introText.length; i++) {
-		if (introText[i] === '') {
+	for (let i = 0; i < articleTitles.length; i++) {
+		if (articleTitles[i] === '') {
 			continue; //no such article
 		}
 		res.push({ value: articleTitles[i], intro: introText[i] });
@@ -41,11 +41,14 @@ const parseSearchResults = apiResp => {
 	return res;
 };
 
-export default function FormDialog({ isOpen }) {
+export default function FormDialog({ isOpen, title, modalOpenHandle }) {
 	//const classes = useStyles();
 	const [open, setOpen] = React.useState(false);
 	const [loading, setLoading] = React.useState(false);
+	const [saving, setSaving] = React.useState(false);
 	const [choosedArticle, setChoosedArticle] = React.useState('');
+	const [articleIntro, setArticleIntro] = React.useState('');
+	const [wbItem, setWBItem] = React.useState('');
 	//const [openSearch, setOpenSearch] = React.useState(false);
 
 	const [inputValue, setInputValue] = React.useState('');
@@ -55,6 +58,31 @@ export default function FormDialog({ isOpen }) {
 	//const loading = open && options.length === 0;
 
 	const debouncedSearchTerm = useDebounce(inputValue, 400);
+
+	React.useEffect(() => {
+		if (choosedArticle === '' || wiki === '') {
+			return;
+		}
+		api.mediawiki.summary(wiki, choosedArticle).then(res => {
+			if ('extract' in res) {
+				setArticleIntro(res.extract);
+			}
+			if ('wikibase_item' in res) {
+				setWBItem(res.wikibase_item);
+			} else {
+				setWBItem(null);
+			}
+		});
+	}, [choosedArticle]);
+
+	React.useEffect(() => {
+		setChoosedArticle('');
+		setArticleIntro('');
+		setInputValue('');
+		setWiki('en');
+		setWBItem('');
+		setOptions([]);
+	}, [title]);
 
 	/* React.useEffect(() => {
     let active = true;
@@ -122,7 +150,19 @@ export default function FormDialog({ isOpen }) {
 	};
 
 	const handleSave = () => {
-		console.log('saving', choosedArticle, inputValue);
+		setSaving(true);
+
+		api.tool.setIWwb(wbItem, title).then(res => {
+			if (res.status === 'error') {
+				toast.warn(`Neveiksmīga saglabāšana`, { autoClose: 7500 });
+			} else {
+				toast.success(`Rakstam pievienota starpviki saite`, { autoClose: 3000 });
+				modalOpenHandle('');
+			}
+		})
+		.finally(() => {
+			setSaving(false);
+		});
 	};
 
 	const removeOption = () => {
@@ -134,7 +174,7 @@ export default function FormDialog({ isOpen }) {
 		setChoosedArticle(val.value);
 	};
 
-	const isButtonDisabled = choosedArticle.length < 1;
+	const isButtonDisabled = choosedArticle.length < 1 || saving || wbItem === null;
 	return (
 		<div>
 			<Dialog
@@ -221,7 +261,14 @@ export default function FormDialog({ isOpen }) {
 								);
 							}}
 						/>
-					</div>
+				</div>
+				{articleIntro.length > 0 && <Typography>
+					{choosedArticle}
+					<br />
+					{articleIntro}
+					<br />
+					{wbItem === null && 'Ar rīku nevar pievienot starpviki saiti šim rakstam!'}
+				</Typography>}
 				</DialogContent>
 				<DialogActions>
 					<Button disabled={isButtonDisabled} onClick={handleSave} color='secondary'>
@@ -237,5 +284,7 @@ export default function FormDialog({ isOpen }) {
 }
 
 FormDialog.propTypes = {
-	isOpen: PropTypes.bool
+	isOpen: PropTypes.bool,
+	title: PropTypes.string,
+	modalOpenHandle: PropTypes.string
 };

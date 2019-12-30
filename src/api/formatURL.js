@@ -17,7 +17,7 @@ function formatURL(url, params) {
 		base = API_URL + url;
 	}
 
-	const queryString = typeof params == 'undefined' ? '' : serialize(params);
+	const queryString = typeof params === 'undefined' || Object.keys(params).length === 0 ? '' : serialize(params);
 
 	return `${base}${queryString}`;
 }

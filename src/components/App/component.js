@@ -5,6 +5,7 @@ import ArticleList from '../ArticleList';
 import Dashboard from '../Dashboard';
 import PropTypes from 'prop-types'
 import { HashRouter as Router, Route, Switch } from 'react-router-dom';
+import ErrorBoundary from './ErrorBoundary';
 import { checkStatus } from './appSlice';
 import { connect } from 'react-redux'
 
@@ -30,13 +31,15 @@ const App = ({checkStatus}) => {
 		<>
 			<Router>
 				<Header />
-				<Switch>
-					<Route exact path='/' component={Article} />
-					<Route exact path='/list' component={ArticleList} />
-					<Route exact path='/comments' component={ArticleList} />
-					<Route exact path='/dashboard' component={Dashboard} />
-					<Route component={NotFound} />
-				</Switch>
+				<ErrorBoundary>
+					<Switch>
+						<Route exact path='/' component={Article} />
+						<Route exact path='/list' component={ArticleList} />
+						<Route exact path='/comments' component={ArticleList} />
+						<Route exact path='/dashboard' component={Dashboard} />
+						<Route component={NotFound} />
+					</Switch>
+				</ErrorBoundary>
 				<ToastContainer
 					position='bottom-right'
 					autoClose={2500}

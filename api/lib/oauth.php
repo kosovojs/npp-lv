@@ -3,6 +3,8 @@
 class MW_OAuth {
 
 	var $use_cookies = true ;
+	private $use_tag_parameter = true;
+	var $tag_parameter_whitelist = ['distributed-game'];
 	var $tool ;
 	var $debugging = false ;
 	var $language , $project ;
@@ -411,8 +413,12 @@ class MW_OAuth {
 	 * @param object $ch Curl handle
 	 * @return array API results
 	 */
-	function doApiQuery( $post, &$ch = null , $mode = '' , $iterations_left = 5 , $last_maxlag = -1 ) {
+	function doApiQuery( $post, &$ch = null , $mode = '' , $iterations_left = 5 , $last_maxlag = -1, $currURL = '' ) {
 		if ( $iterations_left <= 0 ) return ; // Avoid infinite recursion when Wikidata Is Too Damn Slow Again
+
+		if ($currURL  === '') {
+			$currURL = $this->apiUrl;
+		}
 
 		global $maxlag ;
 		if ( !isset($maxlag) ) $maxlag = 5 ;
@@ -452,7 +458,7 @@ class MW_OAuth {
 		} else {
 			$to_sign = $post + $headerArr ;
 		}
-		$url = $this->apiUrl ;
+		$url = $currURL;//$this->apiUrl ;
 		if ( $mode == 'identify' ) $url .= '/identify' ;
 		$signature = $this->sign_request( 'POST', $url, $to_sign );
 		$headerArr['oauth_signature'] = $signature;
@@ -507,7 +513,7 @@ class MW_OAuth {
 			if ( isset($ret->error->lag) ) $last_maxlag = $ret->error->lag*1 + $maxlag ;
 			sleep ( $lag ) ;
 			$ch = null ;
-			$ret = $this->doApiQuery( $post, $ch , '' , $iterations_left-1 , $last_maxlag ) ;
+			$ret = $this->doApiQuery( $post, $ch , '' , $iterations_left-1 , $last_maxlag, $currURL ) ;
 		}
 		
 		return $ret ;
@@ -526,6 +532,64 @@ class MW_OAuth {
 //		$ret = json_decode ( file_get_content ( $url ) ) ;
 
 		return $res ;
+	}
+
+	
+	function setSitelink ( $q , $site , $title, $summary ) {
+
+		// Fetch the edit token
+		$ch = null;
+		$res = $this->doApiQuery( [
+			'format' => 'json',
+			'action' => 'query' ,
+			'meta' => 'tokens'
+		], $ch,'',5,-1,'https://www.wikidata.org/w/api.php' );
+		if ( !isset( $res->query->tokens->csrftoken ) ) {
+			$this->error = 'Bad API response [setLabel]: <pre>' . htmlspecialchars( var_export( $res, 1 ) ) . '</pre>';
+			return false ;
+		}
+		$token = $res->query->tokens->csrftoken;
+
+		$params = [
+			'format' => 'json',
+			'action' => 'wbsetsitelink',
+			'id' => $q,
+			'linksite' => $site,
+			'linktitle' => $title,
+			'token' => $token,
+			'bot' => 1
+		] ;
+		$this->setToolTag($params,$summary);
+
+		// Now do that!
+		$res = $this->doApiQuery( $params , $ch,'',5,-1,'https://www.wikidata.org/w/api.php' );
+		
+		$this->last_res = $res ;
+
+		if ( isset ( $res->error ) ) {
+			$this->error = $res->error->info ;
+			return false ;
+		}
+
+		$this->sleepAfterEdit ( 'edit' ) ;
+
+		return true ;
+	}
+	
+	function setToolTag ( &$params , $summary = '' ) {
+		$tool_hashtag = 'npp-lv' ;
+		if ( $this->use_tag_parameter and isset($tool_hashtag) and $tool_hashtag!='undefined' and in_array($tool_hashtag,$this->tag_parameter_whitelist) ) {
+			if ( isset($tool_hashtag) and $tool_hashtag != '' ) {
+				if (isset($params['tags'])) $params['tags'] .= "|{$tool_hashtag}";
+				else $params['tags'] = $tool_hashtag ;
+			}
+		} else {
+			if ( isset($tool_hashtag) and $tool_hashtag != '' and $tool_hashtag!='undefined' ) {
+				if ( $summary == '' ) $summary = "#{$tool_hashtag}" ;
+				else $summary .= " #{$tool_hashtag}" ;
+			}
+		}
+		if ( $summary != '' ) $params['summary'] = $summary ;
 	}
 
 	function setPageText ( $page , $text, $summary ) {

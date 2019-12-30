@@ -50,6 +50,11 @@ export default function FormDialog({ isOpen, modalOpenHandle, title }) {
 	const [loaded, setLoaded] = React.useState(false);
 	const [copyvioData, setCopyvioData] = React.useState({});
 
+	React.useEffect(() => {
+		setCopyvioData({});
+		//return setOpen(false);
+	}, [title]);
+
 	/* React.useEffect(() => {
 		setOpen(isOpen);
 		//return setOpen(false);

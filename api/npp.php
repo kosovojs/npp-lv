@@ -1,5 +1,10 @@
 <?php
 
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+
 require_once __DIR__.'/lib/oauth.php';
 require_once __DIR__.'/lib/ToolforgeCommon.php';
 
@@ -416,5 +421,45 @@ class NPP
         }
         
         echo json_encode(array($result,$result2,$result3));//,$this->timecard()
+	}
+
+	public function addIWFromWD($wdItem, $title) {
+        if ($wdItem == '' || $wdItem == null || $title == '' || $title == null) {
+            return json_encode(array('status' => 'error','message'=> 'no data'));
+        }
+        if (!$this->checkAuth()) {
+            return json_encode(array('status' => 'error','message'=> 'not logged in'));
+		}
+		/* 
+        $ch = null;
+        $articleContent = $this->oauth->doApiQuery([
+            'format' => 'json',
+            'action' => 'query',
+            'prop' => 'pageprops',
+            'titles' => $articleName,
+            'ppprop' => 'wikibase_item'
+		], $ch,'',5,-1, "https://$language.wikipedia.org/w/api.php");
+		
+        $articleContent= json_decode(json_encode($articleContent), true);
+        $articleID = array_keys($articleContent['query']['pages'])[0];
+        $articleData = $articleContent['query']['pages'][$articleID];
+        $resolvedArticleName = $articleData['title'];
+		$wdItem = $articleData['pageprops']['wikibase_item'];
+ */
+		$resultStatus = $this->oauth->setSitelink($wdItem , 'lvwiki' , $title, '');
+
+		if ($resultStatus) {
+			return json_encode(array('status' => 'success','message'=> 'Everything is ok'));
+		}
+		
+		return json_encode(array('status' => 'error','message'=> 'Not successfull'));
+	}
+	
+    public function test($lvTitle, $language, $articleName)
+    {
+		/* $language = 'en';
+		$articleName = 'Opposition (politics)';
+		$lvTitle = 'Opozīcija (politika)'; */
     }
+    
 }

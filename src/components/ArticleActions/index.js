@@ -36,7 +36,7 @@ const ArticleActions = ({ title }) => {
 						Copyvio
 					</Button>
 				</Tooltip>
-				{/* <Tooltip title="Pievienot rakstam IW"><Button className={styles.iw} onClick={() => setOpenedModal('iw')}>IW</Button></Tooltip> */}
+				<Tooltip title="Pievienot rakstam IW"><Button className={styles.iw} onClick={() => setOpenedModal('iw')}>IW</Button></Tooltip>
 				<Tooltip title='Izvirzīt rakstu dzēšanai'>
 					<Button className={styles.delete} onClick={() => setOpenedModal('delete')}>
 						Dzēst
@@ -44,7 +44,8 @@ const ArticleActions = ({ title }) => {
 				</Tooltip>
 				{/* <Tooltip title="Pievienot rakstam uzlabošanas veidnes"><Button color="secondary">Uzlabot</Button></Tooltip> */}
 			</ButtonGroup>
-			{/* <Iw isOpen={openedModal === 'iw'} modalOpenHandle={handleOpening} /> */}
+			{openedModal === 'iw' && <Iw isOpen={openedModal === 'iw'} modalOpenHandle={handleOpening}
+				title={title} />}
 			<Delete
 				isOpen={openedModal === 'delete'}
 				modalOpenHandle={handleOpening}

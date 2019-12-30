@@ -61,6 +61,11 @@ export default function FormDialog({ isOpen, modalOpenHandle, title }) {
 	const [reason, setReason] = React.useState('');
 	const [days, setDays] = React.useState(15);
 
+	React.useEffect(() => {
+		setDays(15);
+		setReason('');
+	}, [title]);
+
 	/* React.useEffect(() => {
 		setOpen(isOpen);
 	}, [isOpen]); */

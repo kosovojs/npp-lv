@@ -62,6 +62,10 @@ if (!empty($action)) {
 			echo $npp->setArticleToDeletion($npp->getRequest("title"),$npp->getRequest("days"),$npp->getRequest("reason"));
 			break;
         
+		case "add_iw_wb":
+			echo $npp->addIWFromWD($npp->getRequest("wikibaseItem"),$npp->getRequest("articleTitle"));
+			break;
+        
 		case "npp_comment":
 			echo $npp->putForLater($npp->getRequest("id"), $npp->getRequest("comment"));
 			break;
