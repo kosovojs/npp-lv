@@ -95,9 +95,9 @@ function Header({ isAuth, user, articles, location }) {
 					<MenuItem component={Link} to='/dashboard'>
 						Dashboard
 					</MenuItem>
-					{/* <MenuItem onClick={() => window.open('//tools.wmflabs.org/npp-lv', '_blank')}>
-						Pašreizējā versija
-					</MenuItem> */}
+					<MenuItem onClick={() => window.open('//tools.wmflabs.org/npp-lv/v1', '_blank')}>
+						Vecā versija
+					</MenuItem>
 					{location.pathname === '/' && articles && <MenuItem>Vēl {articles} raksti!</MenuItem>}
 					<div className={classes.grow} />
 					{location.pathname === '/' && <ArticleSearch />}

@@ -18,7 +18,7 @@ class NPP
     
     private $requestParams = [];
     
-    private $allowedUsers = ['Biafra','Edgars2007','EDGARSTEST'];
+    private $allowedUsers = ['Biafra','Edgars2007'];
 
     public function __construct()
     {
@@ -96,7 +96,7 @@ class NPP
     
     private function getUserName()
     {
-        return 'EDGARSTEST';//$this->oauth->getConsumerRights()->query->userinfo->name;
+        return $this->oauth->getConsumerRights()->query->userinfo->name;
     }
     
     public function archive($articleID)

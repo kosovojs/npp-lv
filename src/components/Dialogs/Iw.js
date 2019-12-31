@@ -8,6 +8,7 @@ import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 
 import PropTypes from 'prop-types';
+import { toast } from 'react-toastify';
 //import throttle from 'lodash/throttle';
 
 import IconButton from '@material-ui/core/IconButton';
