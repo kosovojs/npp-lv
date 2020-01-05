@@ -460,6 +460,81 @@ class NPP
 		/* $language = 'en';
 		$articleName = 'Opposition (politics)';
 		$lvTitle = 'Opozīcija (politika)'; */
-    }
+	}
+	
+	public function importData() {
+		$this->updateArticleCount();
+		$maxTime = $this->conn->query("select DATE_FORMAT(max(date),'%Y%m%d') as maxd from main")->fetch('assoc')['maxd'];
+		$maxTimeUTC = $this->convertDatetime($maxTime, 'utc');
+
+		$mainSQL = "select actor_name as `user`, rev_timestamp as `timest`, orig.page_title as `title`
+		from revision
+		join page orig on orig.page_id=rev_page and orig.page_is_redirect=0 and orig.page_namespace=0
+		join actor on actor_id=rev_actor
+		where rev_timestamp>? and rev_parent_id=0
+		order by rev_timestamp";
+
+		$otherSQL = "select actor_name as `user`, rc_timestamp as `timest`, rc_title as `title`
+		from change_tag ch
+		join change_tag_def def on def.ctd_id=ch.ct_tag_id
+		join recentchanges rc on rc.rc_id = ch.ct_rc_id 
+		join actor on actor_id=rc_actor
+		where ch.ct_tag_id=3#mw-removed-redirect
+		#where rc_user=347
+		and rc_title in (select page_title from page where page.page_title=rc_title and page_namespace=0 and page_is_redirect=0)
+		and rc_timestamp>?
+		order by rc_timestamp desc
+		limit 500";
+
+		//pareizo konekciju uz wikiDB
+		$mainData = $this->conn->query($mainSQL, [$maxTimeUTC])->fetchAll('assoc');
+		$otherData = $this->conn->query($otherSQL, [$maxTimeUTC])->fetchAll('assoc');
+
+		$this->addDataToDB($mainData, null);
+		$this->addDataToDB($otherData, 1);
+	}
+
+	private function addDataToDB($data, $addType = null) {
+		//utc -> Rīgas laiks
+		$sqlTpl = 'INSERT INTO `main` (`title`, `date`, `user`, `addition_type`) VALUES (?, ?, ?, ?)';
+
+		$rows = [];
+
+		foreach($data as $row) {
+			$user = $row['user'];
+			$timest = $row['timest'];
+			$pageTitle = $row['title'];
+
+			$rows[] = [
+				str_replace('_',' ',$pageTitle),
+				$timest,
+				str_replace('_',' ',$user),
+				$addType
+			];
+		}
+
+		$this->conn->atomicQuery($sqlTpl, $rows);
+	}
+
+	private function updateArticleCount() {
+		$cnt = $this->conn->query('SELECT count(*) as cnt FROM main WHERE (comment is NULL and reviewed is NULL)')->fetch('assoc')['cnt'];
+
+		//vajag UTC
+		$this->conn->query('INSERT INTO `stats` (`timest`, `articles`) VALUES (?, ?)',[date('YmdHis'),$cnt]);
+	}
+
+	private function convertDatetime($input, $to) {
+		if ($to == 'utc') {
+			$given = new DateTime($input);
+			$given->setTimezone(new DateTimeZone("UTC"));
+			return $given->format("Y-m-d H:i:s");
+		}
+		
+		if ($to == 'Europe/Riga') {
+			/* $given = new DateTime($input);
+			$given->setTimezone(new DateTimeZone("UTC"));
+			return $given->format("Y-m-d H:i:s"); */
+		}
+	}
     
 }
