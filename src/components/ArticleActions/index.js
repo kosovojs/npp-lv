@@ -30,7 +30,7 @@ const ArticleActions = ({ title }) => {
 
 	return (
 		<>
-			<ButtonGroup variant='contained' size='small'>
+			<ButtonGroup variant='contained'>
 				<Tooltip title='Pārbaudīt, vai šis raksts nav autortiesību pārkāpums'>
 					<Button className={styles.copyvio} onClick={() => setOpenedModal('copyvio')}>
 						Copyvio

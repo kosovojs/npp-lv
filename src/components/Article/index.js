@@ -8,6 +8,7 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { fetchNextArticle, resetID, settingFromArticleList } from './articleSlice';
 import title from '../../helpers/articleTitle';
+import Divider from '@material-ui/core/Divider';
 
 class Article extends React.Component {
 	constructor(props) {
@@ -35,21 +36,21 @@ class Article extends React.Component {
 		return (
 			<>
 				{currTitle && (
-					<div className={styles.wrapper}>
-						<div className={styles.title}>
-							{title(currTitle,'all', styles)}
-							<span className={styles.actions}>
-								<ArticleActions />
-							</span>
+					<div className={styles.mainFlexContainer}>
+						<div className={styles.infoFlexContainer}>
+							<div className={styles.navigActions}>
+								<ArticleNavigationActions />
+								<div className={styles.articleActions}><ArticleActions /></div>
+							</div>
+							<div className={styles.info}>
+								<ArticleInfo />
+							</div>
 						</div>
-						<div className={styles.navigActions}>
-							<ArticleNavigationActions />
-						</div>
-						<div className={styles.info}>
-							<ArticleInfo />
-						</div>
-						<div className={styles.text}>
-							<ArticleText />
+						<div>
+							<div className={styles.title}>{title(currTitle, 'all', styles)}</div>
+							<div className={styles.text}>
+								<ArticleText />
+							</div>
 						</div>
 					</div>
 				)}

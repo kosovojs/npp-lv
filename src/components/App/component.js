@@ -1,35 +1,40 @@
-import React, {useEffect} from 'react';
+import React, { useEffect } from 'react';
 import Header from '../Header';
 import Article from '../Article';
 import ArticleList from '../ArticleList';
 import Dashboard from '../Dashboard';
-import PropTypes from 'prop-types'
+import PropTypes from 'prop-types';
 import { HashRouter as Router, Route, Switch } from 'react-router-dom';
+import CssBaseline from '@material-ui/core/CssBaseline';
 import ErrorBoundary from './ErrorBoundary';
 import { checkStatus } from './appSlice';
-import { connect } from 'react-redux'
+import { connect } from 'react-redux';
 
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 const NotFound = ({ location }) => (
 	<div>
-	  <h3>Did not found page <code>{location.pathname}</code></h3>
+		<h3>
+			Did not found page <code>{location.pathname}</code>
+		</h3>
 	</div>
 );
 
 NotFound.propTypes = {
-  location: PropTypes.object
-}
+	location: PropTypes.object
+};
 
-const App = ({checkStatus}) => {
+const App = ({ checkStatus }) => {
 	useEffect(() => {
 		checkStatus();
 	}, []);
 
 	return (
 		<>
+
 			<Router>
+			<CssBaseline />
 				<Header />
 				<ErrorBoundary>
 					<Switch>
@@ -54,10 +59,10 @@ const App = ({checkStatus}) => {
 			</Router>
 		</>
 	);
-}
+};
 
 App.propTypes = {
 	checkStatus: PropTypes.func
 };
 
-export default connect(null, {checkStatus})(App);
+export default connect(null, { checkStatus })(App);

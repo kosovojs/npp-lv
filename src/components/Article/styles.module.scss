@@ -1,28 +1,32 @@
-.wrapper {
-	display: grid;
-	grid-template-columns: 20% 2fr;
-	grid-auto-rows: minmax(25px, auto);
+.mainFlexContainer {
+	display: flex;
+}
+
+.infoFlexContainer {
+	display: flex;
+	flex-direction: column;
+	min-width: 20%;
+	max-width: 20%;
+	min-height: 100vh;
+	border-right: 3px solid #ddd;
+}
+
+.textFlexContainer {
+	display: flex;
+	flex-direction: column;
 }
 
 .title {
-	grid-column: 2;
-	grid-row: 1;
+	padding-left: 15px;
 	padding-top: 15px;
-}
-
-.actions {
-	padding-top: 15px;
-	margin-left: 25px;
 }
 
 .articleName {
-	font-weight: bold;
 	font-size: 155%;
 }
 
-.info {
-	grid-column: 1;
-	grid-row: 2/3;
+.text {
+	padding-left: 15px;
 }
 
 .navigActions {
@@ -31,7 +35,13 @@
 	grid-row: 1;
 }
 
-.text {
-	grid-column: 2/3;
-	grid-row: 2;
+.info {
+	padding-left: 15px;
+	padding-right: 15px;
+}
+
+.articleActions {
+	padding: 15px 10px 10px 7px;
+	display: flex;
+	justify-content: center;
 }
