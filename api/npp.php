@@ -21,8 +21,10 @@ class NPP
         $this->oauth = new MW_OAuth('edgars', 'lv', 'wikipedia');
         $this->tfc->tool_user_name = 'edgars';
         $this->conn = $this->tfc->openDBtool('npp_p');
-        
-        $this->getAllRequestParameters();
+		
+		if (PHP_SAPI !== 'cli') {
+			$this->getAllRequestParameters();
+		}
     }
     
     private function getAllRequestParameters()
