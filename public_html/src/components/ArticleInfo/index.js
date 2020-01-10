@@ -16,6 +16,9 @@ import { subDays, format } from 'date-fns';
 import human_readable_date from '../../helpers/humanReadableTime';
 
 const useStyles = makeStyles(theme => ({
+	root: {
+		fontSize: '0.5rem'
+	},
 	danger: {
 		color: theme.palette.status.danger
 	},
@@ -31,7 +34,7 @@ const useStyles = makeStyles(theme => ({
 	},
 	articleCreator: {
 		'& > *': {
-			margin: theme.spacing(0.5),
+			margin: theme.spacing(1),
 		},
 	},
 	articleIssues: {
@@ -39,7 +42,7 @@ const useStyles = makeStyles(theme => ({
 		justifyContent: 'center',
 		flexWrap: 'wrap',
 		'& > *': {
-			margin: theme.spacing(0.5),
+			margin: theme.spacing(1),
 		},
 	},
 }));
@@ -107,7 +110,7 @@ const ArticleInfo = ({title}) => {
 	if (Object.keys(articleData).length==0) {
 		return '';
 	}
-	return <>
+	return <div className={classes.root}>
 		<Divider className={classes.divider} />
 		<div className={classes.articleIssues}>
 			{to_delete && <Chip className={classes.danger} size="small" variant="outlined" icon={<ReportProblemIcon />} label="Raksts izvirzīts uz dzēšanu" />}
@@ -154,7 +157,7 @@ const ArticleInfo = ({title}) => {
 					/>
 			</Typography>
 		</>}
-	</>
+	</div>
 }
 
 ArticleInfo.propTypes = {
