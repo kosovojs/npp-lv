@@ -8,7 +8,6 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { fetchNextArticle, resetID, settingFromArticleList } from './articleSlice';
 import title from '../../helpers/articleTitle';
-import Divider from '@material-ui/core/Divider';
 
 class Article extends React.Component {
 	constructor(props) {

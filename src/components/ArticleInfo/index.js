@@ -86,6 +86,9 @@ const ArticleInfo = ({title}) => {
 
 
 		api.mediawiki.pageviews(title,before90days,yesterday).then(res => {
+			if (!'items' in res) {
+				return;
+			}
 			const dates = [];
 			const values = [];
 
