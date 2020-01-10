@@ -17,9 +17,9 @@ class NPP
 
     public function __construct()
     {
-        $this->tfc = new ToolforgeCommon('npp-lv');
-        $this->oauth = new MW_OAuth('npp-lv', 'lv', 'wikipedia');
-        $this->tfc->tool_user_name = 'npp-lv';
+        $this->tfc = new ToolforgeCommon('edgars');
+        $this->oauth = new MW_OAuth('edgars', 'lv', 'wikipedia');
+        $this->tfc->tool_user_name = 'edgars';
         $this->conn = $this->tfc->openDBtool('npp_p');
         
         $this->getAllRequestParameters();
