@@ -45,7 +45,7 @@ class Article extends React.Component {
 								<ArticleInfo />
 							</div>
 						</div>
-						<div>
+						<div className={styles.articleTextContainer}>
 							<div className={styles.title}>{title(currTitle, 'all', styles)}</div>
 							<div className={styles.text}>
 								<ArticleText />

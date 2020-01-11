@@ -7,6 +7,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import { Link, NavLink, withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
+import GitHubIcon from '@material-ui/icons/GitHub';
 
 import { API_URL } from '../../config';
 
@@ -15,6 +16,9 @@ import ArticleSearch from '../ArticleSearch';
 const useStyles = makeStyles(theme => ({
 	grow: {
 		flexGrow: 1
+	},
+	removedShadow: {
+		boxShadow: '0px 1px 1px 0px rgba(0,0,0,0.2),0px 1px 1px 0px rgba(0,0,0,0.14),0px 1px 1px 0px rgba(0,0,0,0.12)'
 	},
 	menuButton: {
 		marginRight: theme.spacing(2)
@@ -79,7 +83,7 @@ function Header({ isAuth, user, articles, location }) {
 
 	return (
 		<div className={classes.grow}>
-			<AppBar position='sticky'>
+			<AppBar position='sticky' className={classes.removedShadow}>
 				<Toolbar variant="dense">
 					<NavLink to='/' style={{ textDecoration: 'none', color: 'unset' }}>
 						<Typography className={classes.title} variant='h6' noWrap>
@@ -98,6 +102,9 @@ function Header({ isAuth, user, articles, location }) {
 					{location.pathname === '/' && articles && <MenuItem>Vēl {articles} raksti!</MenuItem>}
 					<div className={classes.grow} />
 					{location.pathname === '/' && <ArticleSearch />}
+					<MenuItem onClick={() => window.open(`https://github.com/kosovojs/npp-lv`)}>
+						<GitHubIcon />
+					</MenuItem>
 					{isAuth ? (
 						<>
 							<MenuItem>Sveiks, {user}!</MenuItem>

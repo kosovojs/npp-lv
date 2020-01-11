@@ -28,6 +28,7 @@ import CheckCircleOutlineIcon from '@material-ui/icons/CheckCircleOutline';
 
 import articleTitle from '../../helpers/articleTitle';
 import userLink from '../../helpers/userLink';
+import Spinner from '../../helpers/spinner';
 
 const useStyles1 = makeStyles(theme => ({
 	root: {
@@ -224,16 +225,11 @@ function CustomPaginationActionsTable({ fetchNextArticle, saveArticle, settingFr
 	const [rowsPerPage, setRowsPerPage] = useState(50);
 	const [goToArticle, setGoToArticle] = useState(null);
 	const [hasComments, setComments] = useState(false);
-
-	/* useEffect(() => {
-		if (location.pathname === '/comments') {
-			setComments(true);
-		} else {
-			setComments(false);
-		}
-	}, [location.pathname]); */
+	const [loading, setLoading] = useState(false);
+	const [hasBeenLoaded, setHasBeenLoaded] = useState(false);
 
 	useEffect(() => {
+		setHasBeenLoaded(false);
 		let localHasComments = false;
 		if (location.pathname === '/comments') {
 			setComments(true);
@@ -246,9 +242,11 @@ function CustomPaginationActionsTable({ fetchNextArticle, saveArticle, settingFr
 
 		const apiEndp = localHasComments === true ? api.tool.articlesWithComments : api.tool.articleList;
 
+		setLoading(true);
 		apiEndp().then(res=> {
+			setHasBeenLoaded(true);
 			setTableRows(res.sort((a, b) => (a.id < b.id ? -1 : 1)));
-		})
+		}).finally(() => setLoading(false))
 	}, [location.pathname]);
 
 	const emptyRows = rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
@@ -293,6 +291,10 @@ function CustomPaginationActionsTable({ fetchNextArticle, saveArticle, settingFr
 
 	if (goToArticle) {
 		return <Redirect push to='/' />;
+	}
+
+	if (!hasBeenLoaded && loading) {
+		return <Spinner />;
 	}
 
 	return (

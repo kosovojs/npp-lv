@@ -8,6 +8,7 @@ import api from '../../api/methods';
 import Button from '@material-ui/core/Button';
 import ButtonGroup from '@material-ui/core/ButtonGroup';
 import Tooltip from '@material-ui/core/Tooltip';
+import Spinner from '../../helpers/spinner';
 
 const optionsParbaudamie = ({ dates, views, label, bg, border }) => ({
 	labels: dates,
@@ -115,16 +116,26 @@ var days = {
  */
 const Dashboard = () => {
 	const [active, setActive] = useState('30d');
+	const [loading, setLoading] = useState(false);
+	const [hasBeenLoaded, setHasBeenLoaded] = useState(false);
 	const [data, setData] = useState([{dates: [], values: []},{dates: [], values: []},{dates: [], values: []}])
 
 	useEffect(() => {
+		setLoading(true);
 		api.tool.graphdata(active).then(res => {
+			setHasBeenLoaded(true);
 			setData(res)
 			console.log(res)
-		})
+		}).finally(() => setLoading(false))
+
 	}, [active])
 
 	const [pirmais, otrais, tresais] = data;
+
+	if (!hasBeenLoaded && loading) {
+		return <Spinner />;
+	}
+
 	return (
 		<>
 			<div className={styles.buttonGroup}>

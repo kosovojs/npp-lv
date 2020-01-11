@@ -10,6 +10,8 @@ import ErrorBoundary from './ErrorBoundary';
 import { checkStatus } from './appSlice';
 import { connect } from 'react-redux';
 
+import styles from './styles.module.css';
+
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -45,6 +47,10 @@ const App = ({ checkStatus }) => {
 						<Route component={NotFound} />
 					</Switch>
 				</ErrorBoundary>
+
+				{/* <footer className={styles.footer}>
+				Footer
+				</footer> */}
 				<ToastContainer
 					position='bottom-right'
 					autoClose={2500}
