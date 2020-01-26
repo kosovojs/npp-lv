@@ -24,7 +24,7 @@ const stats = (apiResults) => {
 
 	let deletable = false;
 
-	if (data.categories.length>0) {
+	if (data.categories && data.categories.length>0) {
 
 		data.categories.forEach(element => {
 			if (element.title === 'Kategorija:Dzēšanai izvirzītās lapas') {
