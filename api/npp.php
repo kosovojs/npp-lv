@@ -17,10 +17,10 @@ class NPP
 
     public function __construct()
     {
-        $this->tfc = new ToolforgeCommon('edgars');
-        $this->oauth = new MW_OAuth('edgars', 'lv', 'wikipedia');
-        $this->tfc->tool_user_name = 'edgars';
-        $this->conn = $this->tfc->openDBtool('npp_p');
+        $this->tfc = new ToolforgeCommon('assessor');
+        $this->oauth = new MW_OAuth('assessor', 'lv', 'wikipedia');
+        $this->tfc->tool_user_name = 'assessor';
+        $this->conn = $this->tfc->openDBtool('assessor_p');
 		
 		if (PHP_SAPI !== 'cli') {
 			$this->getAllRequestParameters();
@@ -63,14 +63,14 @@ class NPP
 
     public function commentPage()
     {
-        $result = $this->conn->query("SELECT id, title, date, user, comment from main where comment is not NULL and reviewed is NULL")->fetchAll('assoc');
+        $result = $this->conn->query("SELECT id, title, date, user, comment from main where comment is not NULL and reviewed is NULL order by date")->fetchAll('assoc');
         
         return json_encode($result);
     }
 
     public function mainList()
     {
-        $result = $this->conn->query("SELECT id, title, date, user, comment from main where comment is NULL and reviewed is NULL")->fetchAll('assoc');
+        $result = $this->conn->query("SELECT id, title, date, user, comment from main where comment is NULL and reviewed is NULL order by date")->fetchAll('assoc');
         
         return json_encode($result);
     }
@@ -84,9 +84,9 @@ class NPP
     
     private function checkAuth()
     {
-        /* if (!$this->oauth->isAuthOK()) {
+        if (!$this->oauth->isAuthOK()) {
             return false;
-        } */
+        }
         
         return true;
     }
