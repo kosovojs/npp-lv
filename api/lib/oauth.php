@@ -19,7 +19,7 @@ class MW_OAuth {
 	var $delay_after_create_s = 2 ;
 	var $delay_after_edit_s = 1 ;
 	var $delay_after_upload_s = 1 ;
-	
+
 	function __construct ( $t , $l = '' , $p = '' ) {
 		if ( is_array($t) ) { // Bespoke override for third-party sites
 			foreach ( $t AS $k => $v ) {
@@ -30,7 +30,7 @@ class MW_OAuth {
 			$this->language = $l ;
 			$this->project = $p ;
 			$this->ini_file = "/data/project/$t/oauth.ini" ;
-			
+
 			if ( $l == 'wikidata' ) $this->apiUrl = 'https://www.wikidata.org/w/api.php' ;
 			elseif ( $l == 'commons' ) $this->apiUrl = 'https://commons.wikimedia.org/w/api.php' ;
 			elseif ( $p == 'mediawiki' ) $this->apiUrl = 'https://www.mediawiki.org/w/api.php' ;
@@ -70,17 +70,19 @@ class MW_OAuth {
 		if ( $type == 'edit' ) sleep ( $this->delay_after_edit_s ) ;
 		if ( $type == 'upload' ) sleep ( $this->delay_after_upload_s ) ;
 	}
-	
+
 	function logout () {
 		$this->setupSession() ;
 		session_start();
-		setcookie ( 'tokenKey' , '' , 1 , '/'.$this->tool.'/' ) ;
-		setcookie ( 'tokenSecret' , '' , 1 , '/'.$this->tool.'/' ) ;
+		/* setcookie ( 'tokenKey' , '' , 1 , '/'.$this->tool.'/' ) ;
+		setcookie ( 'tokenSecret' , '' , 1 , '/'.$this->tool.'/' ) ; */
+		setcookie ( 'tokenKey' , '' , 1 , '/'/* .$this->tool.'/' */ ) ;
+		setcookie ( 'tokenSecret' , '' , 1 , '/'/* .$this->tool.'/' */ ) ;
 		$_SESSION['tokenKey'] = '' ;
 		$_SESSION['tokenSecret'] = '' ;
 		session_write_close();
 	}
-	
+
 	function setupSession() {
 		// Setup the session cookie
 		session_name( $this->tool );
@@ -90,14 +92,14 @@ class MW_OAuth {
 			dirname( $_SERVER['SCRIPT_NAME'] )
 		);
 	}
-	
+
 	function loadIniFile () {
 		$this->params = parse_ini_file ( $this->ini_file ) ;
 		$this->gUserAgent = $this->params['agent'];
 		$this->gConsumerKey = $this->params['consumerKey'];
 		$this->gConsumerSecret = $this->params['consumerSecret'];
 	}
-	
+
 	// Load the user token (request or access) from the session
 	function loadToken() {
 		$this->gTokenKey = '';
@@ -173,8 +175,10 @@ class MW_OAuth {
 		$_SESSION['tokenSecret'] = $this->gTokenSecret = $token->secret;
 		if ( $this->use_cookies ) {
 			$t = time()+60*60*24*30 ; // expires in one month
-			setcookie ( 'tokenKey' , $_SESSION['tokenKey'] , $t , '/'.$this->tool.'/' ) ;
-			setcookie ( 'tokenSecret' , $_SESSION['tokenSecret'] , $t , '/'.$this->tool.'/' ) ;
+			setcookie ( 'tokenKey' , $_SESSION['tokenKey'] , $t , '/'/* .$this->tool.'/' */ ) ;
+			setcookie ( 'tokenSecret' , $_SESSION['tokenSecret'] , $t , '/'/* .$this->tool.'/' */ ) ;
+			/* setcookie ( 'tokenKey' , $_SESSION['tokenKey'] , $t , '/'.$this->tool.'/' ) ;
+			setcookie ( 'tokenSecret' , $_SESSION['tokenSecret'] , $t , '/'.$this->tool.'/' ) ; */
 		}
 		session_write_close();
 	}
@@ -183,12 +187,12 @@ class MW_OAuth {
 	/**
 	 * Utility function to sign a request
 	 *
-	 * Note this doesn't properly handle the case where a parameter is set both in 
+	 * Note this doesn't properly handle the case where a parameter is set both in
 	 * the query string in $url and in $params, or non-scalar values in $params.
 	 *
 	 * @param string $method Generally "GET" or "POST"
 	 * @param string $url URL string
-	 * @param array $params Extra parameters for the Authorization header or post 
+	 * @param array $params Extra parameters for the Authorization header or post
 	 * 	data (if application/x-www-form-urlencoded).
 	 * @return string Signature
 	 */
@@ -203,7 +207,7 @@ class MW_OAuth {
 		$port = isset( $parts['port'] ) ? $parts['port'] : ( $scheme == 'https' ? '443' : '80' );
 		$path = isset( $parts['path'] ) ? $parts['path'] : '';
 		if ( ( $scheme == 'https' && $port != '443' ) ||
-			( $scheme == 'http' && $port != '80' ) 
+			( $scheme == 'http' && $port != '80' )
 		) {
 			// Only include the port if it's not the default
 			$host = "$host:$port";
@@ -245,7 +249,7 @@ class MW_OAuth {
 		$url .= strpos( $url, '?' ) ? '&' : '?';
 		$query = [
 			'format' => 'json',
-		
+
 			// OAuth information
 			'oauth_callback' => 'oob', // Must be "oob" for MWOAuth
 			'oauth_consumer_key' => $this->gConsumerKey,
@@ -294,8 +298,10 @@ class MW_OAuth {
 		$_SESSION['tokenSecret'] = $token->secret;
 		if ( $this->use_cookies ) {
 			$t = time()+60*60*24*30 ; // expires in one month
-			setcookie ( 'tokenKey' , $_SESSION['tokenKey'] , $t , '/'.$this->tool.'/' ) ;
-			setcookie ( 'tokenSecret' , $_SESSION['tokenSecret'] , $t , '/'.$this->tool.'/' ) ;
+			setcookie ( 'tokenKey' , $_SESSION['tokenKey'] , $t , '/'/* .$this->tool.'/' */ ) ;
+			setcookie ( 'tokenSecret' , $_SESSION['tokenSecret'] , $t , '/'/* .$this->tool.'/' */ ) ;
+			/* setcookie ( 'tokenKey' , $_SESSION['tokenKey'] , $t , '/'.$this->tool.'/' ) ;
+			setcookie ( 'tokenSecret' , $_SESSION['tokenSecret'] , $t , '/'.$this->tool.'/' ) ; */
 		}
 		session_write_close();
 
@@ -344,9 +350,9 @@ class MW_OAuth {
 		curl_setopt( $ch, CURLOPT_HEADER, 0 );
 		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
 		$data = curl_exec( $ch );
-		
+
 		//var_dump($data);
-		
+
 		if ( !$data ) {
 			header( "HTTP/1.1 Internal Server Error" );
 			echo 'Curl error: ' . htmlspecialchars( curl_error( $ch ) );
@@ -359,7 +365,7 @@ class MW_OAuth {
 #			echo '<hr>';
 			return (object) ['is_authorized'=>false] ;
 		}
-		
+
 		// There are three fields in the response
 		$fields = explode( '.', $data );
 		if ( count( $fields ) !== 3 ) {
@@ -399,7 +405,7 @@ class MW_OAuth {
 			echo 'Invalid payload in identify response: ' . htmlspecialchars( $data );
 			exit(0);
 		}
-		
+
 		$payload->is_authorized = true ;
 		return $payload ;
 	}
@@ -451,7 +457,7 @@ class MW_OAuth {
 //			print_r ( $headerArr ) ;
 			print "</pre>" ;
 		}
-		
+
 		$to_sign = '' ;
 		if ( $mode == 'upload' ) {
 			$to_sign = $headerArr ;
@@ -472,9 +478,9 @@ class MW_OAuth {
 
 		if ( !$ch ) {
 			$ch = curl_init();
-			
+
 		}
-		
+
 		$post_fields = '' ;
 		if ( $mode == 'upload' ) {
 			$post_fields = $post ;
@@ -482,7 +488,7 @@ class MW_OAuth {
 		} else {
 			$post_fields = http_build_query( $post ) ;
 		}
-		
+
 		curl_setopt( $ch, CURLOPT_POST, true );
 		curl_setopt( $ch, CURLOPT_URL, $url );
 		curl_setopt( $ch, CURLOPT_POSTFIELDS, $post_fields );
@@ -506,7 +512,7 @@ class MW_OAuth {
 		if ( !$data ) return ;
 		$ret = json_decode( $data );
 		if ( $ret == null ) return ;
-		
+
 		# maxlag
 		if ( isset($ret->error) and isset($ret->error->code) and $ret->error->code == 'maxlag' ) {
 			$lag = $maxlag ;
@@ -515,10 +521,10 @@ class MW_OAuth {
 			$ch = null ;
 			$ret = $this->doApiQuery( $post, $ch , '' , $iterations_left-1 , $last_maxlag, $currURL ) ;
 		}
-		
+
 		return $ret ;
 	}
-	
+
 	function getConsumerRights () {
 		$ch = null;
 		$res = $this->doApiQuery( [
@@ -527,14 +533,14 @@ class MW_OAuth {
 			'meta' => 'userinfo',
 			'uiprop' => 'blockinfo|groups|rights'
 		], $ch );
-		
+
 //		$url = $this->apiUrl . "?action=query&meta=userinfo&uiprop=blockinfo|groups|rights&format=json" ;
 //		$ret = json_decode ( file_get_content ( $url ) ) ;
 
 		return $res ;
 	}
 
-	
+
 	function setSitelink ( $q , $site , $title, $summary ) {
 
 		// Fetch the edit token
@@ -563,7 +569,7 @@ class MW_OAuth {
 
 		// Now do that!
 		$res = $this->doApiQuery( $params , $ch,'',5,-1,'https://www.wikidata.org/w/api.php' );
-		
+
 		$this->last_res = $res ;
 
 		if ( isset ( $res->error ) ) {
@@ -575,7 +581,7 @@ class MW_OAuth {
 
 		return true ;
 	}
-	
+
 	function setToolTag ( &$params , $summary = '' ) {
 		$tool_hashtag = 'npp-lv' ;
 		if ( $this->use_tag_parameter and isset($tool_hashtag) and $tool_hashtag!='undefined' and in_array($tool_hashtag,$this->tag_parameter_whitelist) ) {
@@ -615,15 +621,15 @@ class MW_OAuth {
 			'minor' => '' ,
 			'token' => $token,
 		] ;
-		
+
 		global $tool_hashtag ;
 		if ( isset($tool_hashtag) and $tool_hashtag != '' ) $summary = isset($summary) ? trim("$summary #$tool_hashtag") : "#$tool_hashtag" ;
 		if ( isset($summary) and $summary != '' ) $params['summary'] = $summary ;
 
-		
+
 		// Now do that!
 		$res = $this->doApiQuery( $params, $ch );
-		
+
 		if ( isset ( $res->error ) ) {
 			$this->error = $res->error->info ;
 			return false ;
@@ -633,7 +639,7 @@ class MW_OAuth {
 
 		return true ;
 	}
-	
+
 	function addPageText ( $page , $text , $header , $summary , $section ) {
 
 		// Fetch the edit token
@@ -648,7 +654,7 @@ class MW_OAuth {
 			return false ;
 		}
 		$token = $res->query->tokens->csrftoken;
-		
+
 		$p = [
 			'format' => 'json',
 			'action' => 'edit',
@@ -658,16 +664,16 @@ class MW_OAuth {
 			'minor' => '' ,
 			'token' => $token,
 		] ;
-		
+
 		if ( isset ( $section ) and $section != '' ) $p['section'] = $section ;
 
 		global $tool_hashtag ;
 		if ( isset($tool_hashtag) and $tool_hashtag != '' ) $summary = isset($summary) ? trim("$summary #$tool_hashtag") : "#$tool_hashtag" ;
 		if ( isset($summary) and $summary != '' ) $params['summary'] = $summary ;
-		
+
 		// Now do that!
 		$res = $this->doApiQuery( $p , $ch );
-		
+
 		if ( isset ( $res->error ) ) {
 			$this->error = $res->error->info ;
 			return false ;
@@ -677,14 +683,14 @@ class MW_OAuth {
 
 		return true ;
 	}
-	
+
 	function genericAction ( $j , $summary = '' ) {
 		if ( !isset($j->action) ) { // Paranoia
 			$this->error = "No action in " . json_encode ( $j ) ;
 			return false ;
 		}
-		
-		
+
+
 		// Next fetch the edit token
 		$ch = null;
 		$res = $this->doApiQuery( [
@@ -700,7 +706,7 @@ class MW_OAuth {
 		$j->token = $res->query->tokens->csrftoken;
 		$j->format = 'json' ;
 		$j->bot = 1 ;
-		
+
 		$params = [] ;
 		foreach ( $j AS $k => $v ) $params[$k] = $v ;
 
@@ -708,13 +714,13 @@ class MW_OAuth {
 		global $tool_hashtag ;
 		if ( isset($tool_hashtag) and $tool_hashtag != '' ) $summary = ($summary!='') ? trim("$summary #$tool_hashtag") : "#$tool_hashtag" ;
 		if ( $summary != '' ) $params['summary'] = $summary ;
-		
+
 		if ( isset ( $_REQUEST['test'] ) ) {
 			print "!!!!!<pre>" ; print_r ( $params ) ; print "</pre>" ;
 		}
 
 		$res = $this->doApiQuery( $params, $ch );
-		
+
 		/* if ( isset ( $_REQUEST['test'] ) ) {
 			print "<pre>" ; print_r ( $claim ) ; print "</pre>" ;
 			print "<pre>" ; print_r ( $res ) ; print "</pre>" ;
@@ -731,7 +737,7 @@ class MW_OAuth {
 
 		return true ;
 	}
-	
+
 	function deletePage ( $page , $reason ) {
 		global $tool_hashtag ;
 		if ( isset($tool_hashtag) and $tool_hashtag != '' ) $reason = isset($reason) ? trim("$reason #$tool_hashtag") : "#$tool_hashtag" ;
@@ -748,7 +754,7 @@ class MW_OAuth {
 			return false ;
 		}
 		$token = $res->query->tokens->csrftoken;
-		
+
 		$p = [
 			'format' => 'json',
 			'action' => 'delete',
@@ -757,14 +763,14 @@ class MW_OAuth {
 			'bot' => 1
 		] ;
 		if ( $reason != '' ) $p['reason'] = $reason ;
-	
+
 		$res = $this->doApiQuery( $p , $ch );
-		
+
 		if ( isset ( $_REQUEST['test'] ) ) {
 			print "1<pre>" ; print_r ( $claim ) ; print "</pre>" ;
 			print "2<pre>" ; print_r ( $res ) ; print "</pre>" ;
 		}
-		
+
 		if ( isset ( $res->error ) ) {
 			$this->error = $res->error->info ;
 			return false ;
@@ -773,7 +779,7 @@ class MW_OAuth {
 		$this->sleepAfterEdit ( 'edit' ) ;
 		return true ;
 	}
-	
+
 	function isAuthOK () {
 
 		$ch = null;
@@ -802,7 +808,7 @@ class MW_OAuth {
 		}
 
 		$this->userinfo = $res->query->userinfo ;
-		
+
 
 		return true ;
 	}
