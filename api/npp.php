@@ -10,9 +10,9 @@ class NPP
     private $tfc = null;
     private $conn = null;
     private $connWiki = null;
-    
+
     private $requestParams = [];
-    
+
     private $allowedUsers = ['Biafra','Edgars2007'];
 
     public function __construct()
@@ -21,12 +21,12 @@ class NPP
         $this->oauth = new MW_OAuth('assessor', 'lv', 'wikipedia');
         $this->tfc->tool_user_name = 'assessor';
         $this->conn = $this->tfc->openDBtool('assessor_p');
-		
+
 		if (PHP_SAPI !== 'cli') {
 			$this->getAllRequestParameters();
 		}
     }
-    
+
     private function getAllRequestParameters()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -64,38 +64,38 @@ class NPP
     public function commentPage()
     {
         $result = $this->conn->query("SELECT id, title, date, user, comment from main where comment is not NULL and reviewed is NULL order by date")->fetchAll('assoc');
-        
+
         return json_encode($result);
     }
 
     public function mainList()
     {
         $result = $this->conn->query("SELECT id, title, date, user, comment from main where comment is NULL and reviewed is NULL order by date")->fetchAll('assoc');
-        
+
         return json_encode($result);
     }
-    
+
     public function search($searchPhrase)
     {
         $result = $this->conn->query("SELECT id,title FROM main WHERE (comment is NULL and reviewed is NULL) and title like '%$searchPhrase%' limit 15")->fetchAll('assoc');
-        
+
         return json_encode($result);
     }
-    
+
     private function checkAuth()
     {
         if (!$this->oauth->isAuthOK()) {
             return false;
         }
-        
+
         return true;
     }
-    
+
     private function getUserName()
     {
         return $this->oauth->getConsumerRights()->query->userinfo->name;
     }
-    
+
     public function archive($articleID)
     {
         if ($articleID == '' || $articleID == null) {
@@ -104,13 +104,13 @@ class NPP
         if (!$this->checkAuth()) {
             return json_encode(array('status' => 'error','message'=> 'not logged in'));
         }
-        
+
         $username = $this->getUserName();
-        
+
         if (in_array($username, $this->allowedUsers)) {
             $cur_time = date("YmdHis");
             $stmt = $this->conn->query("UPDATE main SET reviewed=?, reviewed_time=? WHERE id=?", [$username,$cur_time,$articleID]);
-            
+
             if ($stmt->affectedRows() < 1) {
                 return json_encode(array('status' => 'error','message'=> 'failed'));
             } else {
@@ -120,27 +120,27 @@ class NPP
             return json_encode(array('status' => 'error','message'=> 'not allowed'));
         }
     }
-    
+
     public function getArticle($lastID, $mode)
     {
         if ($lastID == '' || $lastID == null || $mode == '' || $mode == null) {
             return json_encode(array('status' => 'error','message'=> 'no data'));
         }
-        
+
         if ($mode == 'this') {
             $comm = "SELECT id,title FROM main WHERE id=".$lastID." limit 1";
         } else {
             $comm = "SELECT id,title FROM main WHERE (comment is NULL and reviewed is NULL) and id>";
-            
+
             if ($mode=="rnd") {
                 $comm .= "0 ORDER BY RAND() limit 1";
             } elseif ($mode=="next") {
                 $comm .= $lastID." limit 1";
             }
         }
-        
+
         $row = $this->conn->query($comm)->fetch('assoc');
-        
+
         $numofres = $this->conn->query("SELECT count(*) as cnt FROM main WHERE (comment is NULL and reviewed is NULL)")->fetch('assoc')['cnt'];
         $latest = $this->conn->query("SELECT max(date) as m_date FROM main")->fetch('assoc')['m_date'];
 
@@ -151,7 +151,7 @@ class NPP
             'last_article' => $latest
         ]);
     }
-    
+
     public function saveArticle($articleID)
     {
         if ($articleID == '' || $articleID == null) {
@@ -160,13 +160,13 @@ class NPP
         if (!$this->checkAuth()) {
             return json_encode(array('status' => 'error','message'=> 'not logged in'));
         }
-        
+
         $username = $this->getUserName();
-        
+
         if (in_array($username, $this->allowedUsers)) {
             $cur_time = date("YmdHis");
             $stmt = $this->conn->query("UPDATE main SET reviewed=?, reviewed_time=?  WHERE id=?", [$username,$cur_time,$articleID]);
-            
+
             if ($stmt->affectedRows() < 1) {
                 return json_encode(array('status' => 'error','message'=> 'failed'));
             } else {
@@ -176,7 +176,7 @@ class NPP
             return json_encode(array('status' => 'error','message'=> 'not allowed'));
         }
     }
-    
+
     public function setArticleToDeletion($articleName, $days, $reason)
     {
         if ($articleName == '' || $articleName == null) {
@@ -185,9 +185,9 @@ class NPP
         if (!$this->checkAuth()) {
             return json_encode(array('status' => 'error','message'=> 'not logged in'));
 		}
-		
+
 		$username = $this->getUserName();
-		
+
         $ch = null;
         $articleContent = $this->oauth->doApiQuery([
             'format' => 'json',
@@ -200,7 +200,7 @@ class NPP
             'redirects' => '1',
             'rvdir' => 'older'
         ], $ch);
-        
+
         $articleContent= json_decode(json_encode($articleContent), true);
         $articleID = array_keys($articleContent['query']['pages'])[0];
         $articleData = $articleContent['query']['pages'][$articleID];
@@ -210,7 +210,7 @@ class NPP
 		$term = date('d.m.Y', strtotime($days.' days'));
 		$timestamp = date('YmdHis');
 
-		$tpls = "{{Dzēst|".$reason."; termiņš: ".$term."|lietotājs=".$username."|laiks=".$timestamp."}}\n{{termiņš|".$days."|".$term."}}";
+		$tpls = "{{Dzēst|".$reason."; termiņš: ".$term."|lietotājs=".$username."|laiks=".$timestamp."}}";// \n{{termiņš|".$days."|".$term."}}
 
 		$newContent = $tpls."\n".$articleText;
 
@@ -222,7 +222,7 @@ class NPP
 
 		return json_encode(array('status' => 'error','message'=> 'failed'));
     }
-    
+
     public function putForLater($articleID, $comment = null)
     {
         if ($articleID == '' || $articleID == null) {
@@ -231,14 +231,14 @@ class NPP
         if (!$this->checkAuth()) {
             return json_encode(array('status' => 'error','message'=> 'not logged in'));
         }
-        
+
         $username = $this->getUserName();
-        
+
         if (in_array($username, $this->allowedUsers)) {
             $cur_time = date("YmdHis");
 
             $stmt = $this->conn->query("UPDATE main SET comment=?, comment_time=?, commenter=? WHERE id=?", [$comment,$cur_time,$username,$articleID]);
-            
+
             if ($stmt->affectedRows() < 1) {
                 return json_encode(array('status' => 'error','message'=> 'failed'));
             } else {
@@ -257,7 +257,7 @@ class NPP
 		GROUP BY y, x";
 
         $totals = $this->conn->query($theQuery)->fetchAll('assoc');
-        
+
         // Scale the radii: get the max, then scale each radius.
         // This looks inefficient, but there's a max of 72 elements in this array.
         $max = 0;
@@ -357,7 +357,7 @@ class NPP
 
         return $dataset;
 	}
-	
+
 	private function setPeriodDates($period) {
 		if ($period === '30d') {
 			return [
@@ -387,7 +387,7 @@ class NPP
 			];
 		//}
 	}
-    
+
     public function graphdata($period)
     {
 		$periodDates = $this->setPeriodDates($period);
@@ -395,28 +395,28 @@ class NPP
 		$end = $periodDates['end'];
         $row = $this->conn->query("select left(timest,10), articles from stats where timest between ? and ?", [$start, $end])->fetchAll('num');
         $result = array('dates'=>[],'values'=>[]);
-        
+
         foreach ($row as $indrow) {
             $result['dates'][] = $indrow[0];
             $result['values'][] = $indrow[1];
         }
-        
+
         $row2 = $this->conn->query("select left(reviewed_time,10) as newtime, count(*) from main where reviewed_time between ? and ? and reviewed_time is not NULL group by newtime", [$start, $end])->fetchAll('num');
         $result2 = array('dates'=>[],'values'=>[]);
-        
+
         foreach ($row2 as $indrow2) {
             $result2['dates'][] = $indrow2[0];
             $result2['values'][] = $indrow2[1];
         }
-        
+
         $row3 = $this->conn->query("select left(date,10) as newtime, count(*) from main where reviewed_time is NULL and comment is NULL group by newtime")->fetchAll('num');
         $result3 = array('dates'=>[],'values'=>[]);
-        
+
         foreach ($row3 as $indrow3) {
             $result3['dates'][] = $indrow3[0];
             $result3['values'][] = $indrow3[1];
         }
-        
+
         echo json_encode(array($result,$result2,$result3));//,$this->timecard()
 	}
 
@@ -427,7 +427,7 @@ class NPP
         if (!$this->checkAuth()) {
             return json_encode(array('status' => 'error','message'=> 'not logged in'));
 		}
-		/* 
+		/*
         $ch = null;
         $articleContent = $this->oauth->doApiQuery([
             'format' => 'json',
@@ -436,7 +436,7 @@ class NPP
             'titles' => $articleName,
             'ppprop' => 'wikibase_item'
 		], $ch,'',5,-1, "https://$language.wikipedia.org/w/api.php");
-		
+
         $articleContent= json_decode(json_encode($articleContent), true);
         $articleID = array_keys($articleContent['query']['pages'])[0];
         $articleData = $articleContent['query']['pages'][$articleID];
@@ -448,20 +448,20 @@ class NPP
 		if ($resultStatus) {
 			return json_encode(array('status' => 'success','message'=> 'Everything is ok'));
 		}
-		
+
 		return json_encode(array('status' => 'error','message'=> 'Not successfull'));
 	}
-	
+
     public function test($lvTitle, $language, $articleName)
     {
 		/* $language = 'en';
 		$articleName = 'Opposition (politics)';
 		$lvTitle = 'Opozīcija (politika)'; */
 	}
-	
+
 	public function importData() {
 		$this->connWiki = $this->tfc->openDBwiki('lvwiki',true, true);
-		
+
 		$this->updateArticleCount();
 		$maxTime = $this->conn->query("select DATE_FORMAT(max(date),'%Y%m%d%H%i%s') as maxd from main")->fetch('assoc')['maxd'];
 		$maxTimeUTC = $this->convertDatetime($maxTime, 'utc');
@@ -476,7 +476,7 @@ class NPP
 		$otherSQL = "select actor_name as `user`, rc_timestamp as `timest`, rc_title as `title`
 		from change_tag ch
 		join change_tag_def def on def.ctd_id=ch.ct_tag_id
-		join recentchanges rc on rc.rc_id = ch.ct_rc_id 
+		join recentchanges rc on rc.rc_id = ch.ct_rc_id
 		join actor on actor_id=rc_actor
 		where ch.ct_tag_id=3#mw-removed-redirect
 		#where rc_user=347
@@ -490,7 +490,7 @@ class NPP
 
 		$mainData = [];
 		$otherData = [];
-		
+
 		while($row = $mainDataSQL->fetch_assoc()){
 			$mainData[] = $row;
 		}
@@ -498,7 +498,7 @@ class NPP
 		while($row = $otherDataSQL->fetch_assoc()){
 			$otherData[] = $row;
 		}
-		
+
 		$this->addDataToDB($mainData, null);
 		$this->addDataToDB($otherData, 1);
 
@@ -540,12 +540,12 @@ class NPP
 			$given->setTimezone(new DateTimeZone("UTC"));
 			return $given->format("YmdHis");
 		}
-		
+
 		if ($to == 'Europe/Riga') {
 			$given = new \DateTime($input, new DateTimeZone('UTC'));
 			$given->setTimezone(new DateTimeZone("Europe/Riga"));
 			return $given->format("YmdHis");
 		}
 	}
-    
+
 }
