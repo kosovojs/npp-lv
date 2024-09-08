@@ -388,6 +388,62 @@ class NPP
 		//}
 	}
 
+    public function graphdataO($period)
+    {
+		$periodDates = $this->setPeriodDates($period);
+		$start = $periodDates['start'];
+		$end = $periodDates['end'];
+        $row = $this->conn->query("select left(timest,10), articles from stats where timest between ? and ?", [$start, $end])->fetchAll('num');
+        $result = array('dates'=>[],'values'=>[]);
+
+        foreach ($row as $indrow) {
+            $result['dates'][] = $indrow[0];
+            $result['values'][] = $indrow[1];
+        }
+
+        /* $row2 = $this->conn->query("select left(reviewed_time,10) as newtime, count(*) from main where reviewed_time between ? and ? and reviewed_time is not NULL group by newtime", [$start, $end])->fetchAll('num');
+        $result2 = array('dates'=>[],'values'=>[]);
+
+        foreach ($row2 as $indrow2) {
+            $result2['dates'][] = $indrow2[0];
+            $result2['values'][] = $indrow2[1];
+        } */
+
+		$row2 = $this->conn->query("select left(reviewed_time,10) as newtime, count(*) from main where reviewed_time between ? and ? and reviewed_time is not NULL group by newtime", [$start, $end])->fetchAll('num');
+        $result2 = array('dates'=>[],'values'=>[]);
+
+		$allDates = [];
+		$currentDate = new DateTime($start);
+		$endDate = new DateTime($end);
+		while ($currentDate <= $endDate) {
+			$allDates[$currentDate->format('Y-m-d')] = 0;
+			$currentDate->modify('+1 day');
+		}
+
+		// Update counts based on query results
+		foreach ($row2 as $indrow2) {
+			$date = $indrow2[0];
+			$count = $indrow2[1];
+			$allDates[$date] = $count;
+		}
+
+		// Convert the associative array into separate arrays for dates and values
+		$result2 = [
+			'dates' => array_keys($allDates),
+			'values' => array_values($allDates),
+		];
+
+        $row3 = $this->conn->query("select left(date,10) as newtime, count(*) from main where reviewed_time is NULL and comment is NULL group by newtime")->fetchAll('num');
+        $result3 = array('dates'=>[],'values'=>[]);
+
+        foreach ($row3 as $indrow3) {
+            $result3['dates'][] = $indrow3[0];
+            $result3['values'][] = $indrow3[1];
+        }
+
+        echo json_encode(array($result,$result2,$result3));//,$this->timecard()
+	}
+
     public function graphdata($period)
     {
 		$periodDates = $this->setPeriodDates($period);
@@ -401,13 +457,37 @@ class NPP
             $result['values'][] = $indrow[1];
         }
 
-        $row2 = $this->conn->query("select left(reviewed_time,10) as newtime, count(*) from main where reviewed_time between ? and ? and reviewed_time is not NULL group by newtime", [$start, $end])->fetchAll('num');
+        /* $row2 = $this->conn->query("select left(reviewed_time,10) as newtime, count(*) from main where reviewed_time between ? and ? and reviewed_time is not NULL group by newtime", [$start, $end])->fetchAll('num');
         $result2 = array('dates'=>[],'values'=>[]);
 
         foreach ($row2 as $indrow2) {
             $result2['dates'][] = $indrow2[0];
             $result2['values'][] = $indrow2[1];
-        }
+        } */
+
+		$row2 = $this->conn->query("select left(reviewed_time,10) as newtime, count(*) from main where reviewed_time between ? and ? and reviewed_time is not NULL group by newtime order by newtime", [$start, $end])->fetchAll('num');
+        $result2 = array('dates'=>[],'values'=>[]);
+
+		$allDates = [];
+		$currentDate = new DateTime($start);
+		$endDate = new DateTime($end);
+		while ($currentDate <= $endDate) {
+			$allDates[$currentDate->format('Y-m-d')] = 0;
+			$currentDate->modify('+1 day');
+		}
+
+		// Update counts based on query results
+		foreach ($row2 as $indrow2) {
+			$date = $indrow2[0];
+			$count = $indrow2[1];
+			$allDates[$date] = $count;
+		}
+
+		// Convert the associative array into separate arrays for dates and values
+		$result2 = [
+			'dates' => array_keys($allDates),
+			'values' => array_values($allDates),
+		];
 
         $row3 = $this->conn->query("select left(date,10) as newtime, count(*) from main where reviewed_time is NULL and comment is NULL group by newtime")->fetchAll('num');
         $result3 = array('dates'=>[],'values'=>[]);
